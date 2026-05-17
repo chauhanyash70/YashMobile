@@ -3,7 +3,6 @@
 namespace App\Http\Traits;
 
 use Carbon\Carbon;
-use App\Models\Barcode;
 use App\Models\Invoice;
 use Milon\Barcode\DNS1D;
 use Milon\Barcode\DNS2D;
@@ -72,12 +71,18 @@ trait Traits
      */
     public static function getInvoiceNumber()
     {
-        $invoice = Invoice::orderBy('id', 'desc')->first();
-        if ($invoice) {
-            return $invoice->invoice_no + 1;
-        } else {
-            return 10001;
+        $query = Invoice::query();
+        if (auth()->check()) {
+            $query->where('user_id', auth()->id());
         }
+        $invoice = $query->orderBy('id', 'desc')->first();
+        if ($invoice && str_starts_with($invoice->invoice_no, 'YM')) {
+            $number = (int) substr($invoice->invoice_no, 2);
+            $nextNumber = $number + 1;
+        } else {
+            $nextNumber = 1;
+        }
+        return 'YM' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -105,17 +110,5 @@ trait Traits
         return str_pad($rand, $length, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * Generate barcode
-     */
-    public static function generateBarcodeSequence()
-    {
-        $barcode = Barcode::orderBy('id', 'desc')->first();
-        if ($barcode) {
-            return $barcode->barcode + 1;
-        } else {
-            return 909999814101;
-        }
-    }
 
 }

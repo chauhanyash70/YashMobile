@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@section('title', 'Accessories')
+@section('header_title', $header_title ?? 'Accessories')
+@section('tagline', $tagline ?? 'Manage your inventory and accessory stock.')
 
 @section('pageCss')
 <link href="{{ asset('vendor-assets/libs/data-tables/datatables.min.css') }}" rel="stylesheet" type="text/css" />
@@ -30,7 +33,7 @@
                                 <tr>
                                     <th>#</th>
                                     <th class="text-start">Name</th>
-                                    <th>SKU</th>
+                                    <th>HSN</th>
                                     <th>Stock</th>
                                     <th>Buy Price</th>
                                     <th>Sell Price</th>
@@ -72,7 +75,7 @@ var tableVar = $('#accessoryDatatable').DataTable({
     columns: [
         { data: "" },
         { data: "name", sClass: "text-start" },
-        { data: "sku" },
+        { data: "hsn" },
         { data: "stock" },
         { data: "purchase_price" },
         { data: "sale_price" },

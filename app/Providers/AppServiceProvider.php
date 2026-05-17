@@ -19,9 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
-            'device' => \App\Models\Device::class,
-            'accessory' => \App\Models\Accessory::class,
-        ]);
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
+
     }
 }

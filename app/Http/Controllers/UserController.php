@@ -34,10 +34,10 @@ class UserController extends Controller
     {
         try {
             $requestArray = $request->safe()->all();
-            if($request->hasFile('profile')) {
-                $profile = $request->file('profile');
+            if($request->hasFile('profile_image')) {
+                $profile = $request->file('profile_image');
                 $profileUrl = Traits::uploadFile($profile, 'profile');
-                $requestArray['profile'] = $profileUrl;
+                $requestArray['profile_image'] = $profileUrl;
             }
             $user = User::find(Auth::user()->id);
             $user->update($requestArray);

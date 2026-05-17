@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use App\Models\Accessory;
-use App\Models\Device;
+use App\Models\Mobile;
 use App\Models\Invoice;
+use App\Models\Transaction;
 use Maatwebsite\Excel\Facades\Excel;
 
 class HomeController extends Controller
@@ -42,40 +42,48 @@ class HomeController extends Controller
 		$startDate = $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : Carbon::today()->startOfDay();
 		$endDate = $request->end_date ? Carbon::parse($request->end_date)->endOfDay() : Carbon::today()->endOfDay();
 
-		// Low stock
-		$lowStockAccessories = Accessory::where('stock', '<', 5)->get();
+		// Low stock accessories
+		$lowStockAccessories = \App\Models\Accessory::with('brand')->where('stock', '<=', 5)->orderBy('stock', 'asc')->take(10)->get();
 
 		// Sales & profit
-		$periodInvoices = Invoice::with('items')->whereBetween('invoice_date', [$startDate, $endDate])->get();
+		$periodInvoices = Invoice::with([
+            'items.mobile.purchaseTransaction',
+            'items.mobile.repairs',
+            'items.mobile.expenses',
+            'items.accessory'
+        ])
+        ->where('invoice_type', 'sell')
+        ->whereBetween('invoice_date', [$startDate, $endDate])
+        ->get();
 
-		$todayMobileSalesCount = $todayMobileSalesRevenue = 0;
-		$todayAccessorySalesCount = $todayAccessorySalesRevenue = 0;
+		$mobileSalesCount = $mobileSalesRevenue = 0;
+		$accessorySalesCount = $accessorySalesRevenue = 0;
 		$periodProfit = 0;
 
 		foreach ($periodInvoices as $invoice) {
 			foreach ($invoice->items as $item) {
-				if ($item->item_type == 'device') {
-					$todayMobileSalesCount += $item->quantity;
-					$todayMobileSalesRevenue += $item->total;
+                if ($item->mobile_id && $item->mobile) {
+                    $mobileSalesCount += $item->qty;
+                    $mobileSalesRevenue += $item->total;
 
-					$purchaseItem = $this->getDevicePurchaseItem($item, $invoice->invoice_date);
-					if ($purchaseItem) {
-						$periodProfit += ($item->total - (($purchaseItem->price + $purchaseItem->repair_cost) * $item->quantity));
-					} else {
-						// Fallback if no purchase item found (should be rare with new logic)
-						$device = Device::find($item->item_id);
-						if ($device)
-							$periodProfit += ($item->total - (($device->buy_price) * $item->quantity));
-					}
-				} elseif ($item->item_type == 'accessory') {
-					$todayAccessorySalesCount += $item->quantity;
-					$todayAccessorySalesRevenue += $item->total;
-					$accessory = Accessory::find($item->item_id);
-					if ($accessory)
-						$periodProfit += ($item->total - ($accessory->purchase_price * $item->quantity));
-				}
+                    $mobile = $item->mobile;
+                    $buyPrice = $mobile->purchaseTransaction ? $mobile->purchaseTransaction->price : 0;
+                    $repairCost = $mobile->repair_cost; // Using accessor
+                    $expenseAmount = $mobile->expense_amount; // Using accessor
+                    
+                    // Profit = (Total Sell Price) - (Buy Price * Qty) - Total Repair Cost - Total Expense Amount
+                    // Note: Repair/Expense are usually per physical unit, but we assume they apply to the sale.
+                    $periodProfit += ($item->total - ($buyPrice * $item->qty) - $repairCost - $expenseAmount);
+                } elseif ($item->accessory_id && $item->accessory) {
+                    $accessorySalesCount += $item->qty;
+                    $accessorySalesRevenue += $item->total;
+
+                    $accessory = $item->accessory;
+                    $periodProfit += ($item->total - ($accessory->purchase_price * $item->qty));
+                }
 			}
 		}
+		$periodProfit = round($periodProfit, 2);
 
 		// Chart
 		$chartData = ['revenue' => [], 'profit' => []];
@@ -98,24 +106,20 @@ class HomeController extends Controller
                 foreach ($hourInvoices as $invoice) {
                     foreach ($invoice->items as $item) {
                         $hourRevenue += $item->total;
-                        if ($item->item_type == 'device') {
-                            $purchaseItem = $this->getDevicePurchaseItem($item, $invoice->invoice_date);
-                            if ($purchaseItem) {
-                                $hourProfit += ($item->total - (($purchaseItem->price + $purchaseItem->repair_cost) * $item->quantity));
-                            } else {
-                                $device = Device::find($item->item_id);
-                                if ($device)
-                                    $hourProfit += ($item->total - (($device->buy_price) * $item->quantity));
-                            }
-                        } elseif ($item->item_type == 'accessory') {
-                            $accessory = Accessory::find($item->item_id);
-                            if ($accessory)
-                                $hourProfit += ($item->total - ($accessory->purchase_price * $item->quantity));
+                        if ($item->mobile_id && $item->mobile) {
+                            $mobile = $item->mobile;
+                            $buyPrice = $mobile->purchaseTransaction ? $mobile->purchaseTransaction->price : 0;
+                            $repairCost = $mobile->repair_cost;
+                            $expenseAmount = $mobile->expense_amount;
+
+                            $hourProfit += ($item->total - ($buyPrice * $item->qty) - $repairCost - $expenseAmount);
+                        } elseif ($item->accessory_id && $item->accessory) {
+                            $hourProfit += ($item->total - ($item->accessory->purchase_price * $item->qty));
                         }
                     }
                 }
-                $chartData['revenue'][] = $hourRevenue;
-                $chartData['profit'][] = $hourProfit;
+                $chartData['revenue'][] = round($hourRevenue, 2);
+                $chartData['profit'][] = round($hourProfit, 2);
             }
 
         } else {
@@ -124,42 +128,38 @@ class HomeController extends Controller
 
             foreach ($period as $date) {
                 $dates[] = $date->format('d M');
-                $dayInvoices = $periodInvoices->filter(fn($invoice) => $invoice->invoice_date === $date->format('Y-m-d'));
+                $dayInvoices = $periodInvoices->filter(fn($invoice) => Carbon::parse($invoice->invoice_date)->format('Y-m-d') === $date->format('Y-m-d'));
 
                 $dayRevenue = $dayProfit = 0;
                 foreach ($dayInvoices as $invoice) {
                     foreach ($invoice->items as $item) {
                         $dayRevenue += $item->total;
-                        if ($item->item_type == 'device') {
-                            $purchaseItem = $this->getDevicePurchaseItem($item, $invoice->invoice_date);
-                            if ($purchaseItem) {
-                                $dayProfit += ($item->total - (($purchaseItem->price + $purchaseItem->repair_cost) * $item->quantity));
-                            } else {
-                                $device = Device::find($item->item_id);
-                                if ($device)
-                                    $dayProfit += ($item->total - (($device->buy_price) * $item->quantity));
-                            }
-                        } elseif ($item->item_type == 'accessory') {
-                            $accessory = Accessory::find($item->item_id);
-                            if ($accessory)
-                                $dayProfit += ($item->total - ($accessory->purchase_price * $item->quantity));
+                        if ($item->mobile_id && $item->mobile) {
+                            $mobile = $item->mobile;
+                            $buyPrice = $mobile->purchaseTransaction ? $mobile->purchaseTransaction->price : 0;
+                            $repairCost = $mobile->repair_cost;
+                            $expenseAmount = $mobile->expense_amount;
+
+                            $dayProfit += ($item->total - ($buyPrice * $item->qty) - $repairCost - $expenseAmount);
+                        } elseif ($item->accessory_id && $item->accessory) {
+                            $dayProfit += ($item->total - ($item->accessory->purchase_price * $item->qty));
                         }
                     }
                 }
-                $chartData['revenue'][] = $dayRevenue;
-                $chartData['profit'][] = $dayProfit;
+                $chartData['revenue'][] = round($dayRevenue, 2);
+                $chartData['profit'][] = round($dayProfit, 2);
             }
         }
 
 		return response()->json([
-			'mobileSalesCount' => $todayMobileSalesCount,
-			'mobileSalesRevenue' => $todayMobileSalesRevenue,
-			'accessorySalesCount' => $todayAccessorySalesCount,
-			'accessorySalesRevenue' => $todayAccessorySalesRevenue,
+			'mobileSalesCount' => $mobileSalesCount,
+			'mobileSalesRevenue' => $mobileSalesRevenue,
+			'accessorySalesCount' => $accessorySalesCount,
+			'accessorySalesRevenue' => $accessorySalesRevenue,
 			'profit' => $periodProfit,
 			'dates' => $dates,
 			'chartData' => $chartData,
-			'lowStockHtml' => view('partials.low-stock', compact('lowStockAccessories'))->render()
+			'lowStockHtml' => view('partials.low-stock', ['lowStockAccessories' => $lowStockAccessories])->render()
 		]);
 	}
 
@@ -167,36 +167,14 @@ class HomeController extends Controller
     {
         $startDate = $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : Carbon::today()->startOfDay();
         $endDate = $request->end_date ? Carbon::parse($request->end_date)->endOfDay() : Carbon::today()->endOfDay();
-        $type = $request->type; // 'device' or 'accessory'
+        
+        $type = $request->get('type', 'device');
 
-        if ($type == 'device') {
-            return Excel::download(new \App\Exports\SoldDeviceExport($startDate, $endDate), 'sold_devices_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx');
-        } elseif ($type == 'accessory') {
+        if ($type === 'accessory') {
             return Excel::download(new \App\Exports\SoldAccessoryExport($startDate, $endDate), 'sold_accessories_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx');
         }
 
-        return redirect()->back();
-    }
-    private function getDevicePurchaseItem($item, $invoiceDate)
-    {
-        if (!$item->imei_id) return null;
-
-        $purchaseItem = \App\Models\PurchaseItem::where('imei_id', $item->imei_id)
-            ->whereHas('purchase', function ($query) use ($invoiceDate) {
-                $query->where('purchase_date', '<=', $invoiceDate);
-            })
-            ->with('purchase')
-            ->get()
-            ->sortByDesc(function ($pi) {
-                return $pi->purchase->purchase_date;
-            })
-            ->first();
-
-        // Fallback to latest
-        if (!$purchaseItem) {
-            $purchaseItem = \App\Models\PurchaseItem::where('imei_id', $item->imei_id)->latest()->first();
-        }
-
-        return $purchaseItem;
+        return Excel::download(new \App\Exports\SoldDeviceExport($startDate, $endDate), 'sold_mobiles_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx');
     }
 }
+

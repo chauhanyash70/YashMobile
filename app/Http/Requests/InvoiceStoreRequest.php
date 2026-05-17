@@ -32,7 +32,7 @@ class InvoiceStoreRequest extends FormRequest
             'invoice_items.*.product_id' => 'required|exists:products,id',
             /* 'invoice_items.*.name' => 'required',
             'invoice_items.*.color' => 'required',
-            'invoice_items.*.imei_or_serial_number' => 'required',
+            'invoice_items.*.hsn_number' => 'required',
             'invoice_items.*.storage' => 'required', */
             'invoice_items.*.quantity' => 'required',
             'invoice_items.*.price' => 'required',

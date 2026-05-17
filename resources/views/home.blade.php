@@ -1,11 +1,18 @@
 @extends('layouts.app')
+@section('title', 'Dashboard')
+@section('header_title', $header_title ?? App\Http\Traits\Traits::getGreeting() . ', ' . Auth::user()->name . '!')
+@section('tagline', $tagline ?? "Here's your overview.")
+
+@section('pageCss')
+    <link rel="stylesheet" href="{{ asset('vendor-assets/libs/daterangepicker/daterangepicker.css') }}" />
+@endsection
 
 @section('content')
     <div class="container-fluid py-3">
 
         <!-- Spinner Overlay -->
         <div id="dashboardSpinner"
-            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); z-index:9999; text-align:center; padding-top:200px;">
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bs-tertiary-bg); opacity: 0.7; z-index:9999; text-align:center; padding-top:200px;">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -13,20 +20,28 @@
 
         <!-- DATE SELECTOR -->
         <div class="row mb-3">
-            <div class="col-12 d-flex justify-content-end gap-2">
-                <a href="#" id="exportDeviceBtn" class="btn btn-primary d-flex align-items-center me-2">
-                    <i data-feather="download" class="me-1"></i> Export Devices
-                </a>
-                <a href="#" id="exportAccessoryBtn" class="btn btn-secondary d-flex align-items-center me-2">
-                    <i data-feather="download" class="me-1"></i> Export Accessories
-                </a>
-                <div id="reportrange" class="border px-3 py-2 rounded shadow-sm" style="cursor:pointer; width:auto;">
+            <div class="col-12 d-flex justify-content-end align-items-start gap-2">
+                <div class="d-flex flex-column align-items-end">
+                    <div class="d-flex gap-2">
+                        <a href="#" id="exportDeviceBtn" class="btn btn-primary d-flex align-items-center">
+                            <i data-feather="download" class="me-1"></i> Export Devices
+                        </a>
+                        <a href="#" id="exportAccessoryBtn" class="btn btn-secondary d-flex align-items-center">
+                            <i data-feather="download" class="me-1"></i> Export Accessories
+                        </a>
+                    </div>
+                    <div class="text-muted small mt-1">
+                        * Exports only <b>Sold</b> items for the period.
+                    </div>
+                </div>
+                <div id="reportrange" class="border px-3 py-2 rounded shadow-sm ms-2" style="cursor:pointer; width:auto;">
                     <i data-feather="calendar"></i>
                     <span class="mx-1"></span>
                     <i data-feather="chevron-down"></i>
                 </div>
             </div>
         </div>
+
 
         <!-- TOP CARDS -->
         <div class="row g-3">
@@ -107,7 +122,6 @@
 
 @section('pageScripts')
     <script src="{{ asset('vendor-assets/libs/daterangepicker/daterangepicker.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ asset('vendor-assets/libs/daterangepicker/daterangepicker.css') }}" />
     <script src="{{ asset('vendor-assets/libs/apexcharts/apexcharts.min.js') }}"></script>
 
     <script>
@@ -141,7 +155,7 @@
                         }, {
                             duration: 1000,
                             step: function (now) {
-                                $(this).text('₹' + Math.ceil(now).toLocaleString());
+                                $(this).text('₹' + now.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
                             }
                         });
                         $('#accessorySalesCount').prop('Counter', 0).animate({
@@ -157,7 +171,7 @@
                         }, {
                             duration: 1000,
                             step: function (now) {
-                                $(this).text('₹' + Math.ceil(now).toLocaleString());
+                                $(this).text('₹' + now.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
                             }
                         });
                         $('#periodProfit').prop('Counter', 0).animate({
@@ -165,7 +179,7 @@
                         }, {
                             duration: 1000,
                             step: function (now) {
-                                $(this).text('₹' + Math.ceil(now).toLocaleString());
+                                $(this).text('₹' + now.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
                             }
                         });
 
@@ -233,15 +247,15 @@
             if (typeof ApexCharts !== 'undefined') {
                 window.chart = new ApexCharts(document.querySelector("#revenueProfitChart"), {
                     chart: {
-                        type: 'line', // Base type
-                        height: 350,
+                        type: 'line', 
+                        height: 400,
                         fontFamily: 'inherit',
                         toolbar: { show: false },
                         zoom: { enabled: false }
                     },
                     series: [{
                         name: 'Turnover',
-                        type: 'column',
+                        type: 'column', // Revert to columns for clearer distinction
                         data: []
                     }, {
                         name: 'Profit',
@@ -249,54 +263,59 @@
                         data: []
                     }],
                     stroke: {
-                        width: [0, 4], // 0 for Column, 4 for Line
+                        width: [0, 4], 
                         curve: 'smooth'
                     },
                     plotOptions: {
                         bar: {
-                            columnWidth: '50%',
-                            borderRadius: 4
+                            columnWidth: '40%',
+                            borderRadius: 2
                         }
                     },
-                    colors: ['rgba(248, 125, 31, 0.85)', '#10b981'], // Theme Orange (Bar), Emerald (Line)
+                    colors: ['rgba(248, 125, 31, 0.7)', '#10b981'], 
                     fill: {
-                        type: ['solid', 'solid'],
-                        opacity: [0.85, 1],
+                        opacity: [0.7, 1],
                     },
                     dataLabels: {
-                        enabled: true,
-                        enabledOnSeries: [1], // Only show labels on Profit Line
-                        style: {
-                            colors: ['#10b981'],
-                            fontSize: '10px'
-                        },
-                        background: { enabled: true, foreColor: '#fff', borderRadius: 2 }
-
+                        enabled: false
                     },
-                    labels: [], // Will be filled by categories
+                    markers: {
+                        size: 4,
+                        strokeWidth: 2,
+                        hover: { size: 6 }
+                    },
                     xaxis: {
                         categories: [],
                         axisBorder: { show: false },
                         axisTicks: { show: false },
-                        tooltip: { enabled: false }
+                        labels: {
+                            rotate: -45,
+                            rotateAlways: true,
+                            hideOverlappingLabels: true,
+                            style: { fontSize: '11px' }
+                        }
                     },
                     yaxis: [{
-                        title: { text: 'Turnover', style: { color: '#f87d1f' } },
+                        title: { text: 'Turnover', style: { color: '#f87d1f', fontWeight: 600 } },
                         labels: {
-                            formatter: function (value) { return "₹" + value.toLocaleString(); },
+                            formatter: function (value) { return "₹" + Math.round(value).toLocaleString(); },
                             style: { colors: '#f87d1f' }
                         }
                     }, {
                         opposite: true,
-                        title: { text: 'Profit', style: { color: '#10b981' } },
+                        title: { text: 'Profit', style: { color: '#10b981', fontWeight: 600 } },
                         labels: {
-                            formatter: function (value) { return "₹" + value.toLocaleString(); },
+                            formatter: function (value) { return "₹" + Math.round(value).toLocaleString(); },
                             style: { colors: '#10b981' }
                         }
                     }],
                     grid: {
-                        borderColor: '#f1f5f9',
+                        borderColor: 'rgba(0,0,0,0.05)',
                         strokeDashArray: 4,
+                    },
+                    legend: {
+                        position: 'top',
+                        horizontalAlign: 'center',
                     },
                     tooltip: {
                         shared: true,

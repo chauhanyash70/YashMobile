@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@section('title', 'Customers')
+@section('header_title', $header_title ?? 'Customers')
+@section('tagline', $tagline ?? 'View and manage your customer list and their purchase history.')
 @section('pageCss')
 	<link href="{{ asset('vendor-assets/libs/data-tables/datatables.min.css') }}" rel="stylesheet" type="text/css" />
 @endsection
@@ -105,6 +108,17 @@
 						return ""
 					}
 				},
+                {
+                    targets: 1,
+                    render: function(data, type, full, meta) {
+                        return `
+                            <div class="d-flex align-items-center">
+                                <img src="${full.profile_url}" alt="" class="rounded-circle me-2" height="30" width="30" style="object-fit: cover;">
+                                <span>${data}</span>
+                            </div>
+                        `;
+                    }
+                },
 				{
 					width: "150px",
 					targets: -1,

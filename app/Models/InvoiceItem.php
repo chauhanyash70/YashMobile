@@ -2,23 +2,26 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Device;
-use App\Models\Accessory;
 
 class InvoiceItem extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToUser;
 
     protected $fillable = [
+        'user_id',
         'invoice_id',
-        'item_type',
-        'item_id',
-        'quantity',
+        'mobile_id',
+        'accessory_id',
+        'transaction_id',
+        'qty',
         'price',
+        'discount',
+        'tax_amount',
         'total',
-        'imei_id',
+        'is_bought_back'
     ];
 
     public function invoice()
@@ -26,26 +29,18 @@ class InvoiceItem extends Model
         return $this->belongsTo(Invoice::class);
     }
 
-    public function deviceImei()
+    public function mobile()
     {
-        return $this->belongsTo(DeviceImei::class, 'imei_id');
-    }
-
-    /**
-     * Get the parent item model (device or accessory).
-     */
-    public function item()
-    {
-        return $this->morphTo(__FUNCTION__, 'item_type', 'item_id');
-    }
-
-    public function device()
-    {
-        return $this->belongsTo(Device::class, 'item_id');
+        return $this->belongsTo(Mobile::class, 'mobile_id');
     }
 
     public function accessory()
     {
-        return $this->belongsTo(Accessory::class, 'item_id');
+        return $this->belongsTo(Accessory::class, 'accessory_id');
+    }
+
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class);
     }
 }

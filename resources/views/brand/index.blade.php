@@ -1,11 +1,14 @@
 @extends('layouts.app')
+@section('title', 'Brands')
+@section('header_title', $header_title ?? 'Brands')
+@section('tagline', $tagline ?? 'Organize your inventory by device and accessory brands.')
 
 @section('pageCss')
     <link href="{{ asset('vendor-assets/libs/data-tables/datatables.min.css') }}" rel="stylesheet" type="text/css" />
 @endsection
 
 @section('content')
-    <div class="container-fluid">
+    <div class="container">
         <div class="row">
             <div class="col-12">
                 <div class="card">

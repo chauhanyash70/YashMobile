@@ -21,8 +21,18 @@ class UploadController extends Controller
         ]);
 
         try {
-            Excel::import(new DeviceImport, $request->file('file'));
-            return redirect()->back()->with('success', 'Data imported successfully.');
+            $import = new DeviceImport;
+            Excel::import($import, $request->file('file'));
+
+            $msg = "Data imported successfully. " . 
+                   "Devices: {$import->deviceCount}, " . 
+                   "Accessories: {$import->accessoryCount}";
+            
+            if ($import->skipCount > 0) {
+                $msg .= ", Skipped: {$import->skipCount}";
+            }
+
+            return redirect()->back()->with('success', $msg);
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Error importing data: ' . $e->getMessage());
         }

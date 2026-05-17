@@ -3,7 +3,7 @@ if (createProductForm.length) {
 	var createProductFormValidator = createProductForm.validate({
 		focusInvalid: true,
 		rules: {
-			"imei_or_serial_number": {
+			"hsn_number": {
 				required: true,
 			},
 			"customer_name": {
@@ -24,7 +24,7 @@ if (createProductForm.length) {
 			
 		},
 		messages: {
-			"imei_or_serial_number": {
+			"hsn_number": {
 				required: 'The IMEI or serial number filed is required',
 			},
 			"customer_name": {
@@ -60,7 +60,7 @@ if (createProductForm.length) {
 
 $(document).ready(function () {
 	
-}).on('keypress', '#imei_or_serial_number', function (e) {
+}).on('keypress', '#hsn_number', function (e) {
 	if (e.which === 13) {
 		e.preventDefault();
 		let barcode = $(this).val().trim();
@@ -92,7 +92,7 @@ $(document).ready(function () {
 					
 					setTimeout(function () {
 						$('#product_id').val(data.product.id);
-						$('#imei_or_serial_number_text').text(data.product.imei_or_serial_number);
+						$('#hsn_number_text').text(data.product.hsn_number);
 						$('#product_name').text(data.product.name);
 						$('#product_price').text(data.product.price);
 						$('#product_buy_price').text(data.product.buy_price);
@@ -120,7 +120,7 @@ $(document).ready(function () {
 
 				} else {
 					$('#product_id').val('');
-					$('#imei_or_serial_number_text').text('');
+					$('#hsn_number_text').text('');
 					$('#product_name').text('');
 					$('#product_price').text('');
 					$('#product_buy_price').text('');

@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Accessory;
-use App\Models\Supplier;
-use App\Models\Purchase;
-use App\Models\PurchaseItem;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -20,6 +18,8 @@ class AccessoryController extends Controller
     {
         return view('accessory.index', [
             'title' => "Accessories",
+            'header_title' => "Accessories",
+            'tagline' => "Manage your inventory and accessory stock.",
             'breadcrumb' => array()
         ]);
     }
@@ -30,25 +30,25 @@ class AccessoryController extends Controller
     public function getAccessoryData(Request $request)
     {
         $columns = [
-            0 => 'id',
-            1 => 'name',
-            2 => 'sku',
-            3 => 'stock',
-            4 => 'purchase_price',
-            5 => 'sale_price',
-            6 => 'id'
+            0 => 'accessories.id',
+            1 => 'accessories.name',
+            2 => 'accessories.hsn',
+            3 => 'accessories.stock',
+            4 => 'accessories.purchase_price',
+            5 => 'accessories.sale_price',
+            6 => 'accessories.id'
         ];
 
         $limit = $request->input('length');
         $start = $request->input('start');
-        $order = $columns[$request->input('order.0.column')] ?? 'id';
+        $order = $columns[$request->input('order.0.column')] ?? 'accessories.id';
         $dir = $request->input('order.0.dir') ?? 'DESC';
 
         // Base query
         $query = Accessory::query();
 
         // Total count before filter
-        $totalData = $query->count();
+        $totalData = Accessory::count();
 
         // Searching
         if (!empty($request->input('search.value'))) {
@@ -56,8 +56,8 @@ class AccessoryController extends Controller
             $search = $request->input('search.value');
 
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                    ->orWhere('sku', 'LIKE', "%{$search}%");
+                $q->where('accessories.name', 'LIKE', "%{$search}%")
+                    ->orWhere('accessories.hsn', 'LIKE', "%{$search}%");
             });
         }
 
@@ -81,7 +81,7 @@ class AccessoryController extends Controller
             $dataArray[] = [
                 'id' => $data->id,
                 'name' => $data->name,
-                'sku' => $data->sku,
+                'hsn' => $data->hsn,
                 'stock' => $stockBadge,
                 'purchase_price' => '₹' . number_format($data->purchase_price, 2),
                 'sale_price' => '₹' . number_format($data->sale_price, 2),
@@ -104,6 +104,7 @@ class AccessoryController extends Controller
     }
 
 
+
     /**
      * Show the form for creating a new resource.
      */
@@ -113,6 +114,7 @@ class AccessoryController extends Controller
         return view('accessory.create', compact('brands'));
     }
 
+
     /**
      * Store a newly created resource in storage.
      */
@@ -121,7 +123,7 @@ class AccessoryController extends Controller
         $request->validate([
             'brand_id' => 'required',
             'name' => 'required|string',
-            'sku' => 'nullable|string|unique:accessories,sku',
+            'hsn' => 'nullable|string|unique:accessories,hsn,NULL,id,user_id,' . auth()->id(),
             'purchase_price' => 'nullable|numeric|min:0',
             'sale_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
@@ -131,15 +133,15 @@ class AccessoryController extends Controller
             'supplier_mobile_number' => 'required|string',
         ]);
 
+
         try {
             DB::beginTransaction();
 
-            // 1. Handle Supplier
-            $supplier = Supplier::firstOrCreate(
+            // 1. Handle Supplier (using Customer model)
+            $supplier = Customer::updateOrCreate(
                 ['phone' => $request->supplier_mobile_number],
                 [
                     'name' => $request->supplier_name,
-                    'city' => $request->city,
                     'address' => $request->address,
                 ]
             );
@@ -164,7 +166,7 @@ class AccessoryController extends Controller
                     'name' => $request->name,
                     'model' => $request->model,
                     'color' => $request->color,
-                    'sku' => $request->sku ?? 'ACC-' . time(),
+                    'hsn' => $request->hsn ?? 'ACC-' . time(),
                     'purchase_price' => $request->purchase_price ?? 0,
                     'sale_price' => $request->sale_price,
                     'stock' => $request->stock,
@@ -173,24 +175,15 @@ class AccessoryController extends Controller
                 ]);
             }
 
-            // 3. Create Purchase Record
-            $purchase = Purchase::create([
-                'supplier_id' => $supplier->id,
-                'purchase_date' => $request->purchase_date ? Carbon::parse($request->purchase_date) : now(),
-                'total_amount' => ($request->purchase_price ?? 0) * $request->stock,
-                'paid_amount' => ($request->purchase_price ?? 0) * $request->stock,
-                'due_amount' => 0,
-                'payment_method' => 'cash',
-                'notes' => 'Bulk accessory entry'
-            ]);
-
-            PurchaseItem::create([
-                'purchase_id' => $purchase->id,
-                'item_type' => 'accessory',
-                'item_id' => $accessory->id,
-                'quantity' => $request->stock,
-                'price' => $request->purchase_price ?? 0,
-                'total' => ($request->purchase_price ?? 0) * $request->stock,
+            // 3. Record the purchase transaction so the edit form can pre-fill supplier details
+            \App\Models\Transaction::create([
+                'accessory_id'     => $accessory->id,
+                'customer_id'      => $supplier->id,
+                'transaction_type' => 'buy',
+                'price'            => $request->purchase_price ?? 0,
+                'transaction_date' => $request->purchase_date
+                    ? Carbon::parse($request->purchase_date)
+                    : now(),
             ]);
 
             DB::commit();
@@ -211,14 +204,21 @@ class AccessoryController extends Controller
         $accessory = Accessory::with(['brand'])->findOrFail($id);
         $brands = \App\Models\Brand::whereIn('type', ['accessory', 'both'])->orderBy('name')->get();
 
-        $purchaseItem = PurchaseItem::where('item_type', 'accessory')
-            ->where('item_id', $accessory->id)
+        // Find the last supplier for this accessory (optional, as multiple purchases might exist)
+        $supplier = null;
+        $lastPurchase = \App\Models\Transaction::where('accessory_id', $id)
+            ->where('transaction_type', 'buy')
+            ->with('customer')
+            ->latest()
             ->first();
 
-        $purchase = $purchaseItem ? Purchase::with('supplier')->find($purchaseItem->purchase_id) : null;
+        if ($lastPurchase) {
+            $supplier = $lastPurchase->customer;
+        }
 
-        return view('accessory.edit', compact('accessory', 'brands', 'purchase'));
+        return view('accessory.edit', compact('accessory', 'brands', 'supplier'));
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -230,7 +230,7 @@ class AccessoryController extends Controller
             'name' => 'required|string',
             'model' => 'nullable|string',
             'color' => 'nullable|string',
-            'sku' => 'nullable|string|unique:accessories,sku,' . $id,
+            'hsn' => 'nullable|string|unique:accessories,hsn,' . $id . ',id,user_id,' . auth()->id(),
             'purchase_price' => 'nullable|numeric|min:0',
             'sale_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
@@ -239,6 +239,7 @@ class AccessoryController extends Controller
             'supplier_name' => 'required|string',
             'supplier_mobile_number' => 'required|string',
         ]);
+
 
         try {
             DB::beginTransaction();
@@ -251,7 +252,7 @@ class AccessoryController extends Controller
                 'name' => $request->name,
                 'model' => $request->model,
                 'color' => $request->color,
-                'sku' => $request->sku,
+                'hsn' => $request->hsn,
                 'description' => $request->description,
                 'purchase_price' => $request->purchase_price,
                 'sale_price' => $request->sale_price,
@@ -259,58 +260,25 @@ class AccessoryController extends Controller
                 'purchase_date' => $request->purchase_date ? Carbon::parse($request->purchase_date) : null,
             ]);
 
-            // 2. Handle Supplier
-            $supplier = Supplier::firstOrCreate(
+            // 2. Handle Supplier (using Customer model) — always update name/address
+            $supplier = Customer::updateOrCreate(
                 ['phone' => $request->supplier_mobile_number],
                 [
                     'name' => $request->supplier_name,
-                    'city' => $request->city,
                     'address' => $request->address,
                 ]
             );
 
-            // 3. Update or Create Purchase Record associated with this item
-            $purchaseItem = PurchaseItem::where('item_type', 'accessory')
-                ->where('item_id', $accessory->id)
-                ->first();
-
-            if ($purchaseItem) {
-                $purchase = Purchase::find($purchaseItem->purchase_id);
-                if ($purchase) {
-                    $purchase->update([
-                        'supplier_id' => $supplier->id,
-                        'purchase_date' => $request->purchase_date ? Carbon::parse($request->purchase_date) : null,
-                        'total_amount' => ($request->purchase_price ?? 0) * $request->stock,
-                        'paid_amount' => ($request->purchase_price ?? 0) * $request->stock,
-                    ]);
-
-                    $purchaseItem->update([
-                        'quantity' => $request->stock,
-                        'price' => $request->purchase_price ?? 0,
-                        'total' => ($request->purchase_price ?? 0) * $request->stock,
-                    ]);
-                }
-            } else {
-                // Create if not exists (migrating old data)
-                $purchase = Purchase::create([
-                    'supplier_id' => $supplier->id,
-                    'purchase_date' => $request->purchase_date ? Carbon::parse($request->purchase_date) : now(),
-                    'total_amount' => ($request->purchase_price ?? 0) * $request->stock,
-                    'paid_amount' => ($request->purchase_price ?? 0) * $request->stock,
-                    'due_amount' => 0,
-                    'payment_method' => 'cash',
-                    'notes' => 'Updated accessory entry'
-                ]);
-
-                PurchaseItem::create([
-                    'purchase_id' => $purchase->id,
-                    'item_type' => 'accessory',
-                    'item_id' => $accessory->id,
-                    'quantity' => $request->stock,
-                    'price' => $request->purchase_price ?? 0,
-                    'total' => ($request->purchase_price ?? 0) * $request->stock,
-                ]);
-            }
+            // 3. Upsert the buy transaction so edit form can always pre-fill supplier details
+            \App\Models\Transaction::create([
+                'accessory_id'     => $accessory->id,
+                'customer_id'      => $supplier->id,
+                'transaction_type' => 'buy',
+                'price'            => $request->purchase_price ?? 0,
+                'transaction_date' => $request->purchase_date
+                    ? Carbon::parse($request->purchase_date)
+                    : now(),
+            ]);
 
             DB::commit();
             return redirect()->route('accessories.index')->with('success', 'Accessory updated successfully.');

@@ -3,14 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -22,8 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'mobile',
-        'profile',
+        'profile_image',
     ];
 
     /**
@@ -50,12 +49,15 @@ class User extends Authenticatable
     }
 
     public function getProfileUrlAttribute()
-	{
-		if (!empty($this->profile) && Storage::disk(config('app.filesystem_disk'))->exists($this->profile)) {
-			$profile_url = Storage::url($this->profile);
-		} else {
-			$profile_url = asset('assets/images/user-blank.jpg');
-		}
-		return $profile_url;
-	}
+    {
+        if ($this->profile_image) {
+            return asset('storage/' . $this->profile_image);
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random';
+    }
+
+    public function customers()
+    {
+        return $this->hasMany(Customer::class);
+    }
 }

@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@section('title', 'Devices')
+@section('header_title', $header_title ?? 'Mobiles')
+@section('tagline', $tagline ?? 'Manage your inventory and mobile device stock.')
 
 @section('pageCss')
     <link href="{{ asset('vendor-assets/libs/data-tables/datatables.min.css') }}" rel="stylesheet" type="text/css" />
@@ -11,8 +14,8 @@
                 <div class="card">
 
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">{{ __('Mobiles / Devices') }}</h5>
-                        <a href="{{ route('mobiles.create') }}" class="btn btn-primary btn-sm">Add New Device</a>
+                        <h5 class="mb-0">{{ __('Mobiles') }}</h5>
+                        <a href="{{ route('mobiles.create') }}" class="btn btn-primary btn-sm">Add New Mobile</a>
                     </div>
 
                     <div class="card-body">
@@ -23,8 +26,7 @@
                                         <th>#</th>
                                         <th>Brand</th>
                                         <th>Model</th>
-                                        <th>Specs</th>
-                                        <th>Status</th>
+                                        <th>Specifications</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -63,6 +65,10 @@
                     }
                 },
             },
+            language: {
+                searchPlaceholder: "Search mobiles or IMEIs...",
+                search: ""
+            },
 
             columns: [{
                 data: ""
@@ -75,9 +81,6 @@
             },
             {
                 data: "specs"
-            },
-            {
-                data: "status"
             },
             {
                 data: "actions",
@@ -100,7 +103,7 @@
                 render: function (data, type, full) {
                     return `<div>
                                             ${data} <br>
-                                            <small>IMEI: ${full.imei_count}</small>
+                                            <small>HSN Number: ${full.hsn_number_val}</small>
                                         </div>`;
                 }
             },

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\Device;
 use App\Models\Accessory;
+use App\Http\Traits\Traits;
 
 class CustomerController extends Controller
 {
@@ -15,6 +16,8 @@ class CustomerController extends Controller
 	{
 		return view('customer.index', [
 			'title' => "Customers",
+			'header_title' => "Customers",
+			'tagline' => "View and manage your customer list and their purchase history.",
 			'breadcrumb' => array()
 		]);
 	}
@@ -29,8 +32,7 @@ class CustomerController extends Controller
 			1 => 'name',
 			2 => 'phone',
 			3 => 'address',
-			4 => 'created_at',
-			5 => 'id'
+			4 => 'created_at'
 		];
 
 		$limit = $request->input('length');
@@ -39,7 +41,7 @@ class CustomerController extends Controller
 		$dir = $request->input('order.0.dir') ?? 'DESC';
 
 		// Base query
-		$query = Customer::query();
+		$query = Customer::where('user_id', auth()->id());
 
 		// Total count
 		$totalData = $query->count();
@@ -80,6 +82,7 @@ class CustomerController extends Controller
 				'edit_url' => route('customers.edit', $data->id),
 				'delete_url' => route('customers.destroy', $data->id),
 				'details_url' => route('customers.show', $data->id),
+				'profile_url' => $data->profile_url,
 				'actions' => $data->id
 			];
 		}
@@ -104,9 +107,28 @@ class CustomerController extends Controller
 			'name' => 'required',
 			'phone' => 'nullable|unique:customers,phone',
 			'email' => 'nullable|email|unique:customers,email',
+			'profile_image' => 'nullable|image|max:2048',
+			'customer_document.*' => 'nullable|file|max:5120',
 		]);
 
-		Customer::create($request->all());
+		$data = $request->all();
+		$data['user_id'] = auth()->id();
+
+		// Handle Profile Image
+		if ($request->hasFile('profile_image')) {
+			$data['profile_image'] = Traits::uploadFile($request->file('profile_image'), 'customers/profiles');
+		}
+
+		// Handle Documents
+		if ($request->hasFile('customer_document')) {
+			$documents = [];
+			foreach ($request->file('customer_document') as $file) {
+				$documents[] = Traits::uploadFile($file, 'customers/documents');
+			}
+			$data['documents'] = $documents;
+		}
+
+		Customer::create($data);
 
 		return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
 	}
@@ -114,15 +136,13 @@ class CustomerController extends Controller
 	public function show(Customer $customer)
 	{
 		$customer->load([
-			'invoices.items.item' => function ($morphTo) {
-				$morphTo->morphWith([
-					Device::class => ['model', 'brand'],
-					Accessory::class => ['brand'],
-				]);
-			},
-			'invoices.items.deviceImei',
+			'invoices.items.mobile.brand',
+			'invoices.items.mobile.model',
 		]);
-		return view('customer.show', compact('customer'));
+		return view('customer.show', compact('customer'))->with([
+			'header_title' => $customer->name,
+			'tagline' => "Profile, contact information, and transaction history for this customer."
+		]);
 	}
 
 	public function edit(Customer $customer)
@@ -136,9 +156,28 @@ class CustomerController extends Controller
 			'name' => 'required',
 			'phone' => 'nullable|unique:customers,phone,' . $customer->id,
 			'email' => 'nullable|email|unique:customers,email,' . $customer->id,
+			'profile_image' => 'nullable|image|max:2048',
+			'customer_document.*' => 'nullable|file|max:5120',
 		]);
 
-		$customer->update($request->all());
+		$data = $request->all();
+
+		// Handle Profile Image
+		if ($request->hasFile('profile_image')) {
+			// Optional: delete old profile if needed
+			$data['profile_image'] = Traits::uploadFile($request->file('profile_image'), 'customers/profiles');
+		}
+
+		// Handle Documents
+		if ($request->hasFile('customer_document')) {
+			$documents = $customer->documents ?? [];
+			foreach ($request->file('customer_document') as $file) {
+				$documents[] = Traits::uploadFile($file, 'customers/documents');
+			}
+			$data['documents'] = $documents;
+		}
+
+		$customer->update($data);
 
 		return redirect()->route('customers.index')->with('success', 'Customer updated successfully.');
 	}

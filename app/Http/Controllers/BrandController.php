@@ -11,7 +11,10 @@ class BrandController extends Controller
     public function index()
     {
         $brands = Brand::latest()->get();
-        return view('brand.index', compact('brands'));
+        return view('brand.index', compact('brands'))->with([
+            'header_title' => "Brands",
+            'tagline' => "Organize your inventory by device and accessory brands."
+        ]);
     }
 
 public function getBrandData(Request $request)
@@ -65,7 +68,7 @@ public function getBrandData(Request $request)
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:brands,name',
+            'name' => 'required|string|max:255|unique:brands,name,NULL,id,user_id,' . auth()->id(),
             'type' => 'required|in:device,accessory,both',
         ]);
 
@@ -85,7 +88,7 @@ public function getBrandData(Request $request)
     public function update(Request $request, Brand $brand)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:brands,name,' . $brand->id,
+            'name' => 'required|string|max:255|unique:brands,name,' . $brand->id . ',id,user_id,' . auth()->id(),
             'type' => 'required|in:device,accessory,both',
         ]);
 
@@ -104,13 +107,14 @@ public function getBrandData(Request $request)
 
     public function destroy(Brand $brand)
     {
-        // Check if brand has models or devices? 
-        if ($brand->devices()->count() > 0) {
+        // Check if brand has models, devices or accessories
+        if ($brand->phoneModels()->count() > 0 || $brand->accessories()->count() > 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot delete brand with associated models.'
+                'message' => 'Cannot delete brand with associated models or accessories.'
             ], 422);
         }
+
 
         $brand->delete();
         return response()->json([

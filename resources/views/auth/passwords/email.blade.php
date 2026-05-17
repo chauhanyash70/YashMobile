@@ -1,4 +1,5 @@
 @extends('layouts.credentials-app')
+@section('title', 'Forgot Password')
 
 @section('content')
 	<div class="text-center">

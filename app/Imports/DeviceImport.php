@@ -6,198 +6,308 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use App\Models\Brand;
-use App\Models\PhoneModel;
-use App\Models\Device;
-use App\Models\Purchase;
-use App\Models\PurchaseItem;
+use App\Models\MobileModel;
+use App\Models\Mobile;
+use App\Models\Transaction;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Customer;
-use App\Models\Supplier;
-use App\Models\DeviceImei;
+use App\Models\Accessory;
+use App\Models\Repair;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Http\Traits\Traits;
 
 class DeviceImport implements ToCollection, WithHeadingRow
 {
+    public $deviceCount = 0;
+    public $accessoryCount = 0;
+    public $skipCount = 0;
+
     public function collection(Collection $rows)
     {
+        // Map headers to consistent keys based on the provided sheet
+        // Date | Imei/SN | Model | Brand | Color | RAM | ROM | Condition | Purchase | Expected | Sold | Status | Supplier | Customer
+        
+        $rows = $rows->flatMap(function ($row) {
+            // Check multiple potential IMEI headers
+            $imeiString = (string)($row['imeisn'] ?? $row['imei_sn'] ?? $row['imei'] ?? $row['serial_number'] ?? '');
+            
+            // Expand rows with multiple IMEIs (separated by , \n | ;)
+            $imeis = preg_split('/[,\n|;]+/', $imeiString);
+            $imeis = array_filter(array_map('trim', $imeis));
+
+            if (count($imeis) <= 1) {
+                return [$row];
+            }
+
+            return array_map(function ($imei) use ($row) {
+                $newRow = $row;
+                // Update the imei key to the single imei
+                $key = isset($row['imeisn']) ? 'imeisn' : (isset($row['imei_sn']) ? 'imei_sn' : 'imei');
+                $newRow[$key] = $imei;
+                return $newRow;
+            }, $imeis);
+        });
+
         DB::transaction(function () use ($rows) {
-            // Group by Purchase
-            $purchases = $rows->groupBy(function ($item) {
-                return $item['purchase_date'] . '_' . $item['purchase_from'];
-            });
-
-            foreach ($purchases as $key => $purchaseRows) {
-                $firstRow = $purchaseRows->first();
-                $purchaseDate = $this->parseDate($firstRow['purchase_date']);
-
-                // Create or find Supplier
-                $supplierData = $this->parseNamePhone($firstRow['purchase_from']);
-                $supplier = Supplier::firstOrCreate(
-                    ['name' => $supplierData['name']],
-                    ['phone' => $supplierData['phone']]
-                );
-
-                $purchase = Purchase::create([
-                    'supplier_id' => $supplier->id,
-                    'purchase_date' => $purchaseDate,
-                    'total_amount' => $purchaseRows->sum('buy_price'),
-                    'paid_amount' => $purchaseRows->sum('buy_price'), // Assuming fully paid
-                    'due_amount' => 0,
-                    'status' => 'completed',
-                ]);
-                foreach ($purchaseRows as $row) {
-                    $this->processRow($row, $purchase);
-                }
+            foreach ($rows as $row) {
+                $this->processRow($row);
             }
         });
     }
 
-    private function processRow($row, $purchase)
+    private function processRow($row)
     {
-        // Skip if Brand or Model is missing
-        if (empty($row['brand']) || empty($row['model']) || empty($row['imei'])) {
+        // Extract IMEI/SN
+        $imei = trim((string)($row['imeisn'] ?? $row['imei_sn'] ?? $row['imei'] ?? $row['serial_number'] ?? ''));
+
+        if (empty($imei)) {
+            // Process as Accessory if brand/model exists but no IMEI
+            if (!empty($row['brand']) && !empty($row['model'])) {
+                $this->processAccessoryRow($row);
+            } else {
+                $this->skipCount++;
+            }
+            return;
+        }
+
+        // Basic validation
+        if (empty($row['brand']) || empty($row['model'])) {
+            $this->skipCount++;
+            return;
+        }
+
+        $this->deviceCount++;
+        
+        // Date parsing (moved up for skip check)
+        $dateRaw = $row['date'] ?? $row['purchase_date'] ?? null;
+        $purchaseDate = $this->parseDate($dateRaw) ?: now();
+
+        // Skip if this specific unit purchase already exists (same IMEI and same Purchase Date)
+        // This prevents double-importing the same row while allowing multiple lifecycles (trade-ins/buybacks)
+        $exists = Mobile::where('hsn_number', $imei)
+            ->whereHas('transactions', function($q) use ($purchaseDate) {
+                $q->where('transaction_type', 'buy')
+                  ->whereDate('transaction_date', $purchaseDate->format('Y-m-d'));
+            })->exists();
+
+        if ($exists) {
+            $this->skipCount++;
             return;
         }
 
         // Brand & Model
         $brand = Brand::firstOrCreate(['name' => trim($row['brand'])]);
-        $model = PhoneModel::firstOrCreate([
+        $model = MobileModel::firstOrCreate([
             'brand_id' => $brand->id,
             'name' => trim($row['model'])
         ]);
 
-        // Parse Storage & RAM
-        $rawStorage = trim($row['storage']);
-        $clean = preg_replace('/[^0-9+]/', '', $rawStorage);
-        $storageData = explode('+', $clean);
-        $ram = '';
-        $storage = '';
+        // RAM & Storage (ROM)
+        $ram = trim((string)($row['ram'] ?? ''));
+        $rom = trim((string)($row['rom'] ?? $row['storage'] ?? ''));
+        
+        if ($ram && !str_contains(strtolower($ram), 'gb')) $ram .= ' GB';
+        if ($rom && !str_contains(strtolower($rom), 'gb')) $rom .= ' GB';
 
-        if (count($storageData) === 2) {
-            $ram = $storageData[0];
-            $storage = $storageData[1];
-        } elseif (count($storageData) === 1) {
-            $storage = $storageData[0];
+        // Prices
+        $buyPrice = floatval($row['purchase'] ?? $row['buy_price'] ?? $row['purchase_price'] ?? 0);
+        $sellPrice = floatval($row['sold'] ?? $row['sell_price'] ?? $row['sale_price'] ?? 0);
+        $expectedPrice = floatval($row['expected'] ?? 0);
+
+        // Status & Sale Detection
+        $soldDateRaw = $row['sold_date'] ?? $row['sell_date'] ?? $row['sale_date'] ?? null;
+        $customerRaw = $row['customer'] ?? $row['sold_to'] ?? $row['sell_to'] ?? null;
+
+        $status = 'in_stock';
+        // Mark as sold ONLY if actual sale details (date or customer) are provided
+        if ($soldDateRaw || $customerRaw) {
+            $status = 'sold';
         }
 
-        $ramString = $ram ? $ram . ' GB' : '';
-        $storageString = $storage ? $storage . ' GB' : '';
-
-        // Device Model Profile
-        $device = Device::firstOrCreate(
-            [
-                'brand_id' => $brand->id,
-                'model_id' => $model->id,
-                'ram' => $ramString,
-                'storage' => $storageString,
-                'color' => trim($row['color'] ?? ''),
-            ],
-            [
-                'buy_price' => $row['buy_price'] ?? 0,
-                'sell_price' => $row['sell_price'] ?? 0,
-                'stock' => 0, // Will be incremented below
-                'condition' => 'old',
-            ]
-        );
-
-        // Create individual IMEI
-        $status = $row['sold_date'] ? 'sold' : 'available';
-        $imeiRecord = DeviceImei::firstOrCreate(
-            ['imei' => trim($row['imei'])],
-            [
-                'device_id' => $device->id,
-                'status' => $status
-            ]
-        );
-
-        // Update Device Stock if available
-        if ($status === 'available') {
-            $device->increment('stock');
+        // Condition Mapping
+        $rawCondition = strtolower(trim((string)($row['condition'] ?? 'used')));
+        $condition = 'used'; // Default
+        if (str_contains($rawCondition, 'new')) {
+            $condition = 'new';
+        } elseif (str_contains($rawCondition, 'refurbished')) {
+            $condition = 'refurbished';
         }
+        // "used", "old", "pre-owned" all map to "used"
 
-        // Purchase Item
-        PurchaseItem::create([
-            'purchase_id' => $purchase->id,
-            'item_type' => 'device',
-            'item_id' => $device->id,
-            'imei_id' => $imeiRecord->id,
-            'quantity' => 1,
-            'price' => $row['buy_price'] ?? 0,
-            'repair_cost' => $row['repair_cost'] ?? 0,
-            'total' => $row['buy_price'] ?? 0,
+        // Create Mobile Unit
+        $mobile = Mobile::create([
+            'brand_id' => $brand->id,
+            'model_id' => $model->id,
+            'hsn_number' => $imei,
+            'storage' => $rom,
+            'ram' => $ram,
+            'color' => trim((string)($row['color'] ?? '')),
+            'condition_type' => $condition,
+            'status' => $status,
+            'notes' => 'Imported from sheet',
         ]);
 
-        // Invoice (if sold)
-        if ($row['sold_date']) {
-            $soldDate = $this->parseDate($row['sold_date']);
-            $toCustomerData = $this->parseNamePhone($row['sold_to'] ?? 'Walking Customer');
+        // Repair Cost Handling
+        $repairCost = floatval($row['repair'] ?? $row['repair_cost'] ?? $row['fix_cost'] ?? $row['service_cost'] ?? 0);
+        if ($repairCost > 0) {
+            Repair::create([
+                'mobile_id' => $mobile->id,
+                'issue' => 'Imported Repair',
+                'repair_cost' => $repairCost,
+                'repair_status' => 'completed',
+                'repair_date' => $purchaseDate->format('Y-m-d'),
+                'notes' => 'Imported from spreadsheet',
+            ]);
+        }
 
+        // Supplier/Customer for Buy Transaction
+        $supplierRaw = $row['supplier'] ?? $row['purchase_from'] ?? 'Unknown Supplier';
+        $supplierData = $this->parseNamePhone($supplierRaw);
+        $supplier = Customer::firstOrCreate(
+            ['phone' => $supplierData['phone'] ?? '0000000000'],
+            [
+                'name' => $supplierData['name'],
+                'user_id' => auth()->id()
+            ]
+        );
+
+        // Create Buy Invoice & Transaction
+        $buyInvoice = Invoice::create([
+            'customer_id' => $supplier->id,
+            'invoice_no' => Traits::getInvoiceNumber(),
+            'invoice_date' => $purchaseDate->format('Y-m-d'),
+            'invoice_type' => 'buy',
+            'subtotal' => $buyPrice,
+            'grand_total' => $buyPrice,
+            'paid_amount' => $buyPrice,
+            'payment_status' => 'paid',
+        ]);
+
+        $buyTransaction = Transaction::create([
+            'mobile_id' => $mobile->id,
+            'customer_id' => $supplier->id,
+            'transaction_type' => 'buy',
+            'price' => $buyPrice,
+            'transaction_date' => $purchaseDate->format('Y-m-d'),
+            'invoice_no' => $buyInvoice->invoice_no,
+        ]);
+
+        InvoiceItem::create([
+            'invoice_id' => $buyInvoice->id,
+            'mobile_id' => $mobile->id,
+            'transaction_id' => $buyTransaction->id,
+            'qty' => 1,
+            'price' => $buyPrice,
+            'total' => $buyPrice,
+        ]);
+
+        // If Sold, Create Sell Invoice & Transaction
+        if ($status === 'sold') {
+            $customerRaw = $row['customer'] ?? $row['sold_to'] ?? 'Walking Customer';
+            $customerData = $this->parseNamePhone($customerRaw);
             $customer = Customer::firstOrCreate(
-                ['phone' => $toCustomerData['phone']],
-                ['name' => $toCustomerData['name']]
-            );
-
-            $invoice = Invoice::firstOrCreate(
+                ['phone' => $customerData['phone'] ?? '1111111111'],
                 [
-                    'customer_id' => $customer->id,
-                    'invoice_date' => $soldDate->format('Y-m-d'),
-                ],
-                [
-                    'invoice_no' => \App\Http\Traits\Traits::getInvoiceNumber(),
-                    'total_amount' => 0,
-                    'paid_amount' => 0,
-                    'due_amount' => 0,
-                    'payment_method' => 'Cash',
+                    'name' => $customerData['name'],
+                    'user_id' => auth()->id()
                 ]
             );
 
-            // Update Invoice Totals
-            $sellPrice = $row['sell_price'] ?? 0;
-            $invoice->increment('total_amount', $sellPrice);
-            $invoice->increment('paid_amount', $sellPrice);
+            // Sell Date
+            $sellDateRaw = $row['sold_date'] ?? $row['sell_date'] ?? null;
+            $sellDate = $this->parseDate($sellDateRaw) ?: now();
+
+            $sellInvoice = Invoice::create([
+                'customer_id' => $customer->id,
+                'invoice_no' => Traits::getInvoiceNumber(),
+                'invoice_date' => $sellDate->format('Y-m-d'),
+                'invoice_type' => 'sell',
+                'subtotal' => $sellPrice,
+                'grand_total' => $sellPrice,
+                'paid_amount' => $sellPrice,
+                'payment_status' => 'paid',
+            ]);
+
+            $sellTransaction = Transaction::create([
+                'mobile_id' => $mobile->id,
+                'customer_id' => $customer->id,
+                'transaction_type' => 'sell',
+                'price' => $sellPrice,
+                'transaction_date' => $sellDate->format('Y-m-d'),
+                'invoice_no' => $sellInvoice->invoice_no,
+            ]);
 
             InvoiceItem::create([
-                'invoice_id' => $invoice->id,
-                'item_type' => 'device',
-                'item_id' => $device->id,
-                'imei_id' => $imeiRecord->id,
-                'quantity' => 1,
+                'invoice_id' => $sellInvoice->id,
+                'mobile_id' => $mobile->id,
+                'transaction_id' => $sellTransaction->id,
+                'qty' => 1,
                 'price' => $sellPrice,
                 'total' => $sellPrice,
             ]);
         }
     }
 
+    private function processAccessoryRow($row)
+    {
+        $this->accessoryCount++;
+        
+        $brand = Brand::firstOrCreate(['name' => trim($row['brand'] ?? 'Unknown')]);
+        
+        $buyPrice = floatval($row['purchase'] ?? $row['buy_price'] ?? 0);
+        $sellPrice = floatval($row['sold'] ?? $row['sell_price'] ?? 0);
+
+        $accessory = Accessory::create([
+            'brand_id' => $brand->id,
+            'name' => trim($row['model'] ?? 'Unknown Accessory'),
+            'color' => trim((string)($row['color'] ?? '')),
+            'purchase_price' => $buyPrice,
+            'sale_price' => $sellPrice,
+            'stock' => 1,
+            'purchase_date' => $this->parseDate($row['date'] ?? $row['purchase_date']) ?? now(),
+        ]);
+    }
+
     private function parseDate($date)
     {
+        if (!$date) return null;
+
         if (is_numeric($date)) {
             try {
-                return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($date);
+                return Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($date));
             } catch (\Exception $e) {
-                // Fallback if numeric but fails conversion
+                // Fallback
             }
         }
 
         try {
             return Carbon::parse($date);
         } catch (\Exception $e) {
-            return now();
+            return null;
         }
     }
 
     private function parseNamePhone($string)
     {
-        preg_match('/^(.*?)\s*\((\d+)\)$/', $string, $matches);
+        if (empty($string)) {
+            return [
+                'name' => 'Unknown',
+                'phone' => null,
+            ];
+        }
 
-        $name = trim($matches[1]);
-        $phone = $matches[2];
+        if (preg_match('/^(.*?)\s*\(([\d\s+\-]+)\)\s*$/', $string, $matches)) {
+            return [
+                'name' => trim($matches[1]),
+                'phone' => trim($matches[2]),
+            ];
+        }
 
         return [
-            'name' => trim($name ?? $string),
-            'phone' => $phone ?? null,
+            'name' => trim($string),
+            'phone' => null,
         ];
     }
-
 }

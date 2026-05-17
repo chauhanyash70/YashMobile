@@ -191,7 +191,6 @@
                     <th>Item</th>
                     <th>Quantity</th>
                     <th>Price</th>
-                    <th>Discount</th>
                     <th>Total</th>
                 </tr>
             </thead>
@@ -206,11 +205,10 @@
                             @if ($item->product->ram)
                                 <small>RAM: {{ $item->product->ram }}</small><br>
                             @endif
-                            <small>HSN Code: {{ $item->product->imei_or_serial_number }}</small>
+                            <small>HSN Code: {{ $item->product->hsn_number }}</small>
                         </td>
                         <td>{{ $item->quantity }}</td>
                         <td>{{ $item->price }}</td>
-                        <td>{{ $item->discount > 0 ? '-' . $item->discount : 0 }}</td>
                         <td>{{ $item->total }}</td>
                     </tr>
                 @endforeach
@@ -219,11 +217,7 @@
 
         <table class="total-section">
             <tr>
-                <td colspan="5" class="total-label">Total Discount</td>
-                <td class="total">{{ $invoice->discount > 0 ? '-' . $invoice->discount : 0 }}</td>
-            </tr>
-            <tr>
-                <td colspan="5" class="total-label">Total</td>
+                <td colspan="4" class="total-label">Total</td>
                 <td class="total">{{ $invoice->total }}</td>
             </tr>
         </table>

@@ -26,7 +26,7 @@ $(function () {
     if (accessoryForm.length) {
         accessoryForm.validate({
             rules: {
-                "sku": {
+                "hsn": {
                     required: true,
                     minlength: 2
                 },
@@ -42,10 +42,6 @@ $(function () {
                     minlength: 2
                 },
                 "model": {
-                    required: true,
-                    minlength: 2
-                },
-                "color": {
                     required: true,
                     minlength: 2
                 },
@@ -71,15 +67,12 @@ $(function () {
                 },
                 "supplier_name": {
                     required: true
-                },
-                "city": {
-                    required: true
                 }
             },
             messages: {
-                "sku": {
-                    required: "Please enter the serial number",
-                    minlength: "Serial number must be at least 2 characters long"
+                "hsn": {
+                    required: "Please enter the HSN number",
+                    minlength: "HSN number must be at least 2 characters long"
                 },
                 "purchase_date": {
                     required: "Please select a purchase date"
@@ -92,9 +85,6 @@ $(function () {
                 },
                 "model": {
                     required: "Please enter the model"
-                },
-                "color": {
-                    required: "Please enter the color"
                 },
                 "stock": {
                     required: "Please enter current stock"
@@ -110,15 +100,18 @@ $(function () {
                 },
                 "supplier_name": {
                     required: "Please enter supplier name"
-                },
-                "city": {
-                    required: "Please enter city"
                 }
             },
-            errorElement: 'span',
+            errorElement: 'div',
             errorPlacement: function (error, element) {
                 error.addClass('invalid-feedback');
-                element.closest('.mb-3').append(error);
+                if (element.parent('.input-group').length) {
+                    error.insertAfter(element.parent());
+                } else if (element.hasClass('select2-hidden-accessible')) {
+                    error.insertAfter(element.next('.select2-container'));
+                } else {
+                    error.insertAfter(element);
+                }
             },
             highlight: function (element, errorClass, validClass) {
                 $(element).addClass('is-invalid');
@@ -141,10 +134,10 @@ $(function () {
             dataType: "json",
             headers: { "X-CSRF-TOKEN": csrfToken },
             success: function (response) {
-                if (response) {
-                    if (response.name) $("#supplier_name").val(response.name);
-                    if (response.city) $("#city").val(response.city);
-                    if (response.address) $("#address").val(response.address);
+                if (response && response.status) {
+                    if (response.customer.name) $("#supplier_name").val(response.customer.name);
+                    if (response.customer.city) $("#city").val(response.customer.city);
+                    if (response.customer.address) $("#address").val(response.customer.address);
                 }
             },
             error: function (xhr, status, error) {

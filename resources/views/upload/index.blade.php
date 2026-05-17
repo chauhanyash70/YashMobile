@@ -1,4 +1,8 @@
 @extends('layouts.app')
+@section('title', 'Upload Data')
+@section('header_title', $header_title ?? 'Import Data')
+@section('tagline', $tagline ?? 'Bulk upload inventory and transaction data via Excel.')
+
 
 @section('content')
 <div class="container">

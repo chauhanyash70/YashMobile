@@ -1,6 +1,32 @@
 $(document)
 	.ready(function () {
 		select2Init();
+
+		// Initialize populated manual entry rows on page load
+		$("[data-repeater-item]").each(function () {
+			let row = $(this);
+			let isManual = row.find(".manual-entry-checkbox").is(":checked");
+			let $productSelect = row.find('.product_id');
+			let $manualInputs = row.find('.manual_div input, .manual_div select');
+
+			if (isManual) {
+				$productSelect.val('').trigger('change.select2');
+				$productSelect.prop('disabled', true);
+				$manualInputs.prop('readonly', false).prop('disabled', false);
+				row.find('.quantity-input').prop('readonly', false);
+				row.find('.supplier-details-div').show();
+
+				// Ensure select2 is visually disabled
+				if ($productSelect.hasClass("select2-hidden-accessible")) {
+					$productSelect.trigger("change.select2");
+				}
+			} else {
+				$manualInputs.prop('readonly', true);
+				row.find('.quantity-input').prop('readonly', true);
+				row.find('.supplier-details-div').hide();
+				row.find('.manual_div select').prop('disabled', true);
+			}
+		});
 	})
 	.on("change", ".product_id", function () {
 		let $select = $(this);
@@ -15,11 +41,19 @@ $(document)
 
 		row.find('[name$="[name]"]').val(productData.name);
 		row.find('[name$="[color]"]').val(productData.color);
-		row.find('[name$="[imei_or_serial_number]"]').val(
-			productData.imei_or_serial_number
+		row.find('[name$="[hsn_number]"]').val(
+			productData.hsn_number
 		);
 		row.find('[name$="[storage]"]').val(productData.storage);
 		row.find('[name$="[ram]"]').val(productData.ram);
+		row.find('[name$="[battery_health]"]').val(productData.battery_health);
+
+		// Show/hide battery health div based on availability
+		if (productData.battery_health) {
+			row.find('.battery-health-div').show();
+		} else {
+			row.find('.battery-health-div').hide();
+		}
 
 		// Populate and trigger item_type and brand
 		row.find('.item-type-select').val(productData.type).trigger("change");
@@ -37,30 +71,56 @@ $(document)
 		let $checkbox = $(this);
 		let row = $checkbox.closest("[data-repeater-item]");
 		let $productSelect = row.find('.product_id');
-		let $manualInputs = row.find('#manual_div input, #manual_div select');
+		let $manualInputs = row.find('.manual_div input, .manual_div select');
 
 		if ($checkbox.is(':checked')) {
 			// Manual Mode
 			$productSelect.val('').trigger('change'); // Clear selection
 			$productSelect.prop('disabled', true);
+			if ($productSelect.hasClass("select2-hidden-accessible")) {
+				$productSelect.trigger("change.select2");
+			}
 			$manualInputs.prop('readonly', false).prop('disabled', false);
 			row.find('.quantity-input').prop('readonly', false);
+			row.find('.supplier-details-div').show();
 
 			// Remove required from product select, add to manual inputs
 			$productSelect.rules('remove', 'required');
 
+			row.find('[name$="[item_type]"]').rules('add', { required: true });
+			row.find('[name$="[brand_id]"]').rules('add', { required: true });
+			row.find('[name$="[name]"]').rules('add', { required: true });
+			row.find('[name$="[hsn_number]"]').rules('add', { required: true });
+			row.find('[name$="[color]"]').rules('add', { required: true });
+			row.find('[name$="[storage]"]').rules('add', { required: true });
+			row.find('[name$="[ram]"]').rules('add', { required: true });
+
 			// Trigger filtering based on default/current item_type
 			row.find('.item-type-select').trigger('change');
+			row.find('.brand-select').trigger('change');
 		} else {
 			// Product Mode
 			$productSelect.prop('disabled', false);
+			if ($productSelect.hasClass("select2-hidden-accessible")) {
+				$productSelect.trigger("change.select2");
+			}
 			$manualInputs.prop('readonly', true);
 			row.find('.quantity-input').prop('readonly', true);
+			row.find('.supplier-details-div').hide();
 			// For select inputs in manual div, we might need to disable them
-			row.find('#manual_div select').prop('disabled', true);
+			row.find('.manual_div select').prop('disabled', true);
 
 			// Restore required to product select
 			$productSelect.rules('add', { required: true });
+
+			// Remove rules from manual inputs
+			row.find('[name$="[item_type]"]').rules('remove', 'required');
+			row.find('[name$="[brand_id]"]').rules('remove', 'required');
+			row.find('[name$="[name]"]').rules('remove', 'required');
+			row.find('[name$="[hsn_number]"]').rules('remove', 'required');
+			row.find('[name$="[color]"]').rules('remove', 'required');
+			row.find('[name$="[storage]"]').rules('remove', 'required');
+			row.find('[name$="[ram]"]').rules('remove', 'required');
 		}
 	})
 	.on("change", '.item-type-select', function () {
@@ -84,6 +144,23 @@ $(document)
 		let selectedOption = $brandSelect.find('option:selected');
 		if (selectedOption.prop('hidden') || selectedOption.prop('disabled')) {
 			$brandSelect.val('').trigger('change');
+		}
+
+		// Hide battery health if accessory is selected
+		if (type === 'accessory') {
+			row.find('.battery-health-div').hide().find('input').val('');
+		}
+	})
+	.on("change", ".brand-select", function () {
+		let row = $(this).closest("[data-repeater-item]");
+		let slug = $(this).find('option:selected').data('slug');
+		let isManual = row.find('.manual-entry-checkbox').is(':checked');
+		let itemType = row.find('.item-type-select').val();
+
+		if (isManual && itemType === 'device' && slug === 'apple') {
+			row.find('.battery-health-div').show();
+		} else if (isManual) {
+			row.find('.battery-health-div').hide().find('input').val('');
 		}
 	})
 	.on("keypress", "#barcode", function (e) {
@@ -137,9 +214,16 @@ $(document)
 
 							row.find('[name$="[name]"]').val(data.product.name);
 							row.find('[name$="[color]"]').val(data.product.color);
-							row.find('[name$="[imei_or_serial_number]"]').val(data.product.imei_or_serial_number);
+							row.find('[name$="[hsn_number]"]').val(data.product.hsn_number);
 							row.find('[name$="[storage]"]').val(data.product.storage);
 							row.find('[name$="[ram]"]').val(data.product.ram);
+							row.find('[name$="[battery_health]"]').val(data.product.battery_health);
+
+							if (data.product.battery_health) {
+								row.find('.battery-health-div').show();
+							} else {
+								row.find('.battery-health-div').hide();
+							}
 
 							row.find('.item-type-select').val(data.product.type).trigger("change");
 							row.find('.brand-select').val(data.product.brand_id).trigger("change");
@@ -209,50 +293,26 @@ $(document)
 				let name = $(this).attr("name");
 				if (name.includes("[price]")) {
 					let price = $(this).val();
-					let quantity = $(this)
-						.parent()
-						.parent()
-						.find(".quantity-input")
-						.val();
-					let discount = $(this)
-						.parent()
-						.parent()
-						.find(".discount")
-						.val();
-					let subTotal = price * quantity - discount;
-					$(this)
-						.parent()
-						.parent()
-						.find(".item_sub_total")
-						.text(subTotal);
+					let row = $(this).closest("[data-repeater-item]");
+					let quantity = row.find(".quantity-input").val();
+					let subTotal = (parseFloat(price) || 0) * (parseInt(quantity) || 0);
+					row.find(".item_sub_total").text(subTotal.toFixed(2));
 				}
 			});
 		input.trigger("change");
 		total();
 	})
-	.on("blur change keyup", ".price, .discount", function () {
+	.on("blur change keyup", ".price, .quantity-input", function () {
 		createInvoiceForm
 			.find('input[name^="invoice_items"]')
 			.each(function () {
 				let name = $(this).attr("name");
 				if (name.includes("[price]")) {
 					let price = $(this).val();
-					let quantity = $(this)
-						.parent()
-						.parent()
-						.find(".quantity-input")
-						.val();
-					let discount = $(this)
-						.parent()
-						.parent()
-						.find(".discount")
-						.val();
-					let subTotal = price * quantity - discount;
-					$(this)
-						.parent()
-						.parent()
-						.find(".item_sub_total")
-						.text(subTotal);
+					let row = $(this).closest("[data-repeater-item]");
+					let quantity = row.find(".quantity-input").val();
+					let subTotal = (parseFloat(price) || 0) * (parseInt(quantity) || 0);
+					row.find(".item_sub_total").text(subTotal.toFixed(2));
 				}
 			});
 		total();
@@ -309,6 +369,13 @@ try {
 				allowClear: true,
 				width: "100%",
 			});
+
+			// Reset manual entry state for new row
+			let $newRow = $(this);
+			$newRow.find(".manual-entry-checkbox").prop("checked", false);
+			$newRow.find(".manual_div input").prop("readonly", true);
+			$newRow.find(".manual_div select").prop("disabled", true);
+			$newRow.find(".product_id").prop("disabled", false);
 		},
 		hide: function (deleteElement) {
 			$(this).slideUp(deleteElement);
@@ -360,7 +427,7 @@ try {
 				"invoice_items[0][color]": {
 					required: true,
 				},
-				"invoice_items[0][imei_or_serial_number]": {
+				"invoice_items[0][hsn_number]": {
 					required: true,
 				},
 				"invoice_items[0][storage]": {
@@ -368,7 +435,7 @@ try {
 				}, */
 				"invoice_items[0][quantity]": {
 					required: true,
-					min: true,
+					min: 1,
 				},
 				"invoice_items[0][price]": {
 					required: true,
@@ -393,7 +460,7 @@ try {
 				"invoice_items[0][color]": {
 					required: 'The color filed is required',
 				},
-				"invoice_items[0][imei_or_serial_number]": {
+				"invoice_items[0][hsn_number]": {
 					required: 'The IMEI or serial number filed is required',
 				},
 				"invoice_items[0][storage]": {
@@ -458,7 +525,7 @@ try {
 							},
 						});
 					}
-					if (name.includes("[imei_or_serial_number]")) {
+					if (name.includes("[hsn_number]")) {
 						$(this).rules("add", {
 							required: true,
 							messages: {
@@ -510,16 +577,6 @@ try {
 			sum += parseFloat(value);
 		}
 
-		var discounts = $("input[name^='invoice_items'][name$='[discount]']")
-			.map(function () {
-				return $(this).val() == "" ? 0 : $(this).val();
-			})
-			.get();
-		var totalDiscount = 0;
-		for (var i = 0; i < discounts.length; i++) {
-			totalDiscount += parseFloat(discounts[i]);
-		}
-		$("#totalDiscount").text(totalDiscount.toFixed(2));
 		$("#total").text(sum.toFixed(2));
 	}
 

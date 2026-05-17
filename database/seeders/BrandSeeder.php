@@ -13,8 +13,13 @@ class BrandSeeder extends Seeder
      */
     public function run(): void
     {
+        $user = \App\Models\User::first();
+        if (!$user) {
+            return;
+        }
+
         $brands = [
-            ['name' => 'Apple', 'type' => 'device'],
+            ['name' => 'Apple', 'type' => 'both'],
             ['name' => 'Samsung', 'type' => 'both'],
             ['name' => 'Xiaomi', 'type' => 'both'],
             ['name' => 'Oppo', 'type' => 'both'],
@@ -24,30 +29,11 @@ class BrandSeeder extends Seeder
             ['name' => 'Motorola', 'type' => 'device'],
             ['name' => 'Nokia', 'type' => 'device'],
             ['name' => 'Google', 'type' => 'device'],
-            ['name' => 'Huawei', 'type' => 'both'],
-            ['name' => 'Honor', 'type' => 'device'],
-            ['name' => 'Asus', 'type' => 'device'],
-            ['name' => 'Sony', 'type' => 'device'],
-            ['name' => 'LG', 'type' => 'device'],
-            ['name' => 'Tecno', 'type' => 'device'],
-            ['name' => 'Infinix', 'type' => 'device'],
-            ['name' => 'Lava', 'type' => 'device'],
-            ['name' => 'Micromax', 'type' => 'device'],
-            ['name' => 'itel', 'type' => 'device'],
-            // Accessory Brands
-            ['name' => 'JBL', 'type' => 'accessory'],
-            ['name' => 'boat', 'type' => 'accessory'],
-            ['name' => 'Portronics', 'type' => 'accessory'],
-            ['name' => 'Ambrane', 'type' => 'accessory'],
-            ['name' => 'Syska', 'type' => 'accessory'],
-            ['name' => 'Mi', 'type' => 'accessory'],
-            ['name' => 'Anker', 'type' => 'accessory'],
-            ['name' => 'Belkin', 'type' => 'accessory'],
         ];
 
         foreach ($brands as $brand) {
             Brand::updateOrCreate(
-                ['name' => $brand['name']],
+                ['name' => $brand['name'], 'user_id' => $user->id],
                 [
                     'slug' => Str::slug($brand['name']),
                     'type' => $brand['type'],

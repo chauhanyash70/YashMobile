@@ -150,13 +150,13 @@
         .total-section {
             width: 100%;
             position: absolute;
-            bottom: 450px;
+            bottom: 455px;
             padding-top: 10px;
         }
 
         .total-section td {
             text-align: right;
-            padding: 10px;
+            padding: 4px;
         }
     </style>
 </head>
@@ -174,7 +174,11 @@
             <tr>
                 <td><strong>Invoice No:</strong> <br>#{{ $invoice->invoice_no }}</td>
                 <td><strong>Date:</strong> <br>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d-m-Y') }} <br>
-                    <strong>Payment Method:</strong> <br>{{ $invoice->payment_method ?? 'N/A' }}
+                    <strong>Payment Method:</strong>
+                    <br>{{ $invoice->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst($invoice->payment_method ?? 'N/A') }}
+                    @if ($invoice->bajaj_approval_number)
+                        <br><strong>Bajaj Appr No:</strong> {{ $invoice->bajaj_approval_number }}
+                    @endif
                 </td>
             </tr>
             <tr>
@@ -193,7 +197,6 @@
                     <th>Item</th>
                     <th>Quantity</th>
                     <th>Price</th>
-                    <th>Discount</th>
                     <th>Total</th>
                 </tr>
             </thead>
@@ -202,28 +205,35 @@
                     <tr>
                         <td>{{ $key + 1 }}</td>
                         <td>
-                            @if ($item->item_type == 'device' && $item->item)
-                                {{ $item->item->name ?? $item->item->brand->name . ' ' . $item->item->model->name }}<br>
-                                <small>Color: {{ $item->item->color }}</small><br>
-                                <small>Storage: {{ $item->item->storage }}</small><br>
-                                @if ($item->item->ram)
-                                    <small>RAM: {{ $item->item->ram }}</small><br>
+                            @if ($item->mobile)
+                                {{ $item->mobile->brand->name ?? '' }} {{ $item->mobile->model->name ?? '' }}<br>
+                                @if ($item->mobile->color)
+                                    <small>Color: {{ $item->mobile->color }}</small><br>
+                                  @endif
+                                @if ($item->mobile->storage)
+                                    <small>Storage: {{ $item->mobile->storage }}</small><br>
+                                  @endif
+                                @if ($item->mobile->ram)
+                                    <small>RAM: {{ $item->mobile->ram }}</small><br>
+                                  @endif
+                                @if ($item->mobile->hsn_number)
+                                    <small>HSN Number: {{ $item->mobile->hsn_number }}</small>
                                 @endif
-                                @if ($item->deviceImei)
-                                    <small>IMEI: {{ $item->deviceImei->imei }}</small>
-                                @elseif($item->imei_or_serial_number)
-                                    <small>IMEI/HSN: {{ $item->imei_or_serial_number }}</small>
+                            @elseif ($item->accessory)
+                                {{ $item->accessory->brand->name ?? '' }} {{ $item->accessory->name ?? '' }}
+                                {{ $item->accessory->model ? '(' . $item->accessory->model . ')' : '' }}<br>
+                                @if ($item->accessory->color)
+                                    <small>Color: {{ $item->accessory->color }}</small><br>
+                                  @endif
+                                @if ($item->accessory->hsn)
+                                    <small>HSN: {{ $item->accessory->hsn }}</small>
                                 @endif
-                            @elseif($item->item_type == 'accessory' && $item->item)
-                                {{ $item->item->name }}<br>
-                                <small>SKU: {{ $item->item->sku }}</small>
                             @else
                                 Item Deleted
                             @endif
                         </td>
-                        <td>{{ $item->quantity }}</td>
+                        <td>{{ $item->qty ?? ($item->quantity ?? 1) }}</td>
                         <td>{{ number_format($item->price, 2) }}</td>
-                        <td>{{ $item->discount > 0 ? '-' . number_format($item->discount, 2) : 0 }}</td>
                         <td>{{ number_format($item->total, 2) }}</td>
                     </tr>
                 @endforeach
@@ -231,15 +241,15 @@
         </table>
 
         <table class="total-section">
+            @if ($invoice->tax_amount > 0)
+                <tr>
+                    <td colspan="4" class="total-label">Tax</td>
+                    <td class="total">{{ number_format($invoice->tax_amount, 2) }}</td>
+                </tr>
+            @endif
             <tr>
-                <td colspan="5" class="total-label">Total Discount</td>
-                <td class="total">
-                    {{ $invoice->items->sum('discount') > 0 ? '-' . number_format($invoice->items->sum('discount'), 2) : 0 }}
-                </td>
-            </tr>
-            <tr>
-                <td colspan="5" class="total-label">Total</td>
-                <td class="total">{{ number_format($invoice->total_amount, 2) }}</td>
+                <td colspan="4" class="total-label"><strong>Total Amount</strong></td>
+                <td class="total"><strong>{{ number_format($invoice->paid_amount, 2) }}</strong></td>
             </tr>
         </table>
 

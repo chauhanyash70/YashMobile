@@ -107,25 +107,38 @@
                                         <input type="file" name="customer_document[]" id="formImages-document" multiple
                                             class="d-none">
                                     </div>
-                                    <div id="gallery-document" class="d-flex flex-wrap">
-                                        @if (isset($customer) && $customer->documents)
-                                            @foreach ($customer->documents as $doc)
-                                                <div class="img-wrapper">
-                                                    @if (Str::endsWith($doc, ['.jpg', '.jpeg', '.png', '.gif', '.webp']))
-                                                        <a href="{{ asset('storage/' . $doc) }}" class="lightbox">
-                                                            <img src="{{ asset('storage/' . $doc) }}" alt="">
-                                                        </a>
-                                                    @else
-                                                        <div class="d-flex align-items-center justify-content-center bg-light border rounded"
-                                                            style="width: 100px; height: 100px;">
-                                                            <i class="fas fa-file fa-2x text-primary"></i>
-                                                        </div>
-                                                    @endif
-                                                    {{-- <button type="button" class="img-remove" data-path="{{ $doc }}">×</button> --}}
-                                                </div>
-                                            @endforeach
-                                        @endif
-                                    </div>
+                                    <div id="gallery-document" class="d-flex flex-wrap gap-2 mt-2">
+                                         @if (isset($customer) && $customer->documents)
+                                             @foreach ($customer->documents as $index => $doc)
+                                                 @php
+                                                     $extension = strtolower(pathinfo($doc, PATHINFO_EXTENSION));
+                                                     $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                                     $isPdf = $extension === 'pdf';
+                                                 @endphp
+                                                 <div class="img-wrapper border rounded overflow-hidden position-relative shadow-sm hover-scale" style="width: 100px; height: 100px;">
+                                                     @if ($isImage)
+                                                         <a href="{{ asset('storage/' . $doc) }}" data-fancybox="customer-create-docs" data-caption="Document {{ $index + 1 }}">
+                                                             <img src="{{ asset('storage/' . $doc) }}" alt="" class="w-100 h-100 object-fit-cover">
+                                                         </a>
+                                                     @elseif ($isPdf)
+                                                         <a href="{{ asset('storage/' . $doc) }}" data-fancybox="customer-create-docs" data-type="pdf" data-caption="Document {{ $index + 1 }} (PDF)">
+                                                             <div class="d-flex flex-column align-items-center justify-content-center bg-danger-subtle text-danger w-100 h-100">
+                                                                 <i class="far fa-file-pdf fa-2x mb-1"></i>
+                                                                 <span class="fs-10 text-uppercase fw-semibold">PDF</span>
+                                                             </div>
+                                                         </a>
+                                                     @else
+                                                         <a href="{{ asset('storage/' . $doc) }}" data-fancybox="customer-create-docs" data-type="iframe" data-caption="Document {{ $index + 1 }}">
+                                                             <div class="d-flex flex-column align-items-center justify-content-center bg-secondary-subtle text-secondary w-100 h-100">
+                                                                 <i class="fas fa-file fa-2x mb-1"></i>
+                                                                 <span class="fs-10 text-uppercase fw-semibold">{{ $extension ?: 'FILE' }}</span>
+                                                             </div>
+                                                         </a>
+                                                     @endif
+                                                 </div>
+                                             @endforeach
+                                         @endif
+                                     </div>
                                 </div>
                             </div>
 
@@ -142,7 +155,14 @@
     </div>
 @endsection
 
+@section('pageCss')
+    <!-- Fancybox 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" type="text/css" />
+@endsection
+
 @section('pageScripts')
+    <!-- Fancybox 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const profileImageInput = document.getElementById("profileImageInput");
@@ -168,6 +188,28 @@
             if (typeof initImageUploader === 'function') {
                 initImageUploader('drop-area-document', 'fileElem-document', 'gallery-document',
                     'formImages-document');
+            }
+
+            // Bind Fancybox to documents
+            if (typeof Fancybox !== 'undefined') {
+                Fancybox.bind('[data-fancybox="customer-create-docs"]', {
+                    Compact: false,
+                    Idle: false,
+                    Animated: true,
+                    dragToClose: true,
+                    Toolbar: {
+                        display: {
+                            left: ["infobar"],
+                            middle: [],
+                            right: ["slideshow", "download", "thumbs", "close"],
+                        },
+                    },
+                    Html: {
+                        pdf: {
+                            type: "pdf"
+                        }
+                    }
+                });
             }
 
             // Form validation

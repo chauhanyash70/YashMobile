@@ -3,6 +3,9 @@
 @section('header_title', $header_title ?? 'Edit Repair')
 @section('tagline', $tagline ?? 'Modify repair details or update maintenance status.')
 
+@section('pageCss')
+    <link href="{{ asset('assets/css/select2/select2.min.css') }}" rel="stylesheet" type="text/css" />
+@endsection
 
 @section('content')
     <div class="container">
@@ -18,10 +21,11 @@
                             @method('PUT')
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Select Mobile</label>
-                                <select name="mobile_id" class="form-select" required>
+                                <select name="mobile_id" id="mobile_id" class="form-select" required>
                                     <option value="">Choose Device...</option>
                                     @foreach ($mobiles as $mobile)
                                         <option value="{{ $mobile->id }}"
+                                            data-hsn="{{ $mobile->hsn_number }}"
                                             {{ $repair->mobile_id == $mobile->id ? 'selected' : '' }}>
                                             {{ $mobile->model->name }} ({{ $mobile->hsn_number }})
                                         </option>
@@ -92,4 +96,39 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('pageScripts')
+    <script src="{{ asset('assets/js/select2/select2.min.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('#mobile_id').select2({
+                placeholder: "Choose Device...",
+                allowClear: true,
+                width: '100%',
+                matcher: function(params, data) {
+                    // If there are no search terms, return all of the data
+                    if ($.trim(params.term) === '') {
+                        return data;
+                    }
+
+                    // Do not display the item if there is no 'text' property
+                    if (typeof data.text === 'undefined') {
+                        return null;
+                    }
+
+                    var searchTerm = params.term.toLowerCase();
+                    var optionText = data.text.toLowerCase();
+                    var hsn = $(data.element).data('hsn') ? $(data.element).data('hsn').toString().toLowerCase() : '';
+
+                    // Match if search term is in option text or HSN number
+                    if (optionText.indexOf(searchTerm) > -1 || hsn.indexOf(searchTerm) > -1) {
+                        return data;
+                    }
+
+                    return null;
+                }
+            });
+        });
+    </script>
 @endsection

@@ -18,7 +18,7 @@
                             <div class="row align-items-end">
                                 <div class="col-auto">
                                     <div class="mt-n5 position-relative">
-                                        <a href="{{ $customer->profile_url }}" class="lightbox">
+                                        <a href="{{ $customer->profile_url }}">
                                             <img src="{{ $customer->profile_url }}" alt="" height="120"
                                                 width="120"
                                                 class="rounded-circle border border-4 border-card-bg shadow-sm object-fit-cover">
@@ -94,22 +94,85 @@
 
                         @if ($customer->documents)
                             <div class="mt-4">
-                                <h6 class="mb-2">Documents</h6>
-                                <div class="d-grid gap-2">
+                                <h6 class="mb-3 fw-bold text-dark d-flex align-items-center">
+                                    <i class="iconoir-attachment me-2 text-primary fs-18"></i>
+                                    Customer Documents
+                                </h6>
+                                <div class="row g-3">
                                     @foreach ($customer->documents as $index => $doc)
-                                        <div class="d-flex align-items-center p-2 border rounded bg-light">
-                                            <i class="iconoir-page me-2 text-primary"></i>
-                                            <span class="small text-truncate">Doc {{ $index + 1 }}</span>
-                                            <div class="ms-auto">
-                                                @if (Str::endsWith($doc, ['.jpg', '.jpeg', '.png', '.gif', '.webp']))
-                                                    <a href="{{ asset('storage/' . $doc) }}"
-                                                        class="text-primary me-2 lightbox"><i class="fas fa-eye"></i></a>
-                                                @else
-                                                    <a href="{{ asset('storage/' . $doc) }}" target="_blank"
-                                                        class="text-primary me-2"><i class="fas fa-eye"></i></a>
-                                                @endif
-                                                <a href="{{ asset('storage/' . $doc) }}" download class="text-success"><i
-                                                        class="fas fa-download"></i></a>
+                                        @php
+                                            $extension = strtolower(pathinfo($doc, PATHINFO_EXTENSION));
+                                            $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                            $isPdf = $extension === 'pdf';
+                                            $isDoc = in_array($extension, ['doc', 'docx']);
+                                            $isExcel = in_array($extension, ['xls', 'xlsx']);
+                                        @endphp
+                                        <div class="col-12">
+                                            <div class="document-card p-3 border rounded-3 d-flex align-items-center shadow-sm">
+                                                <div class="document-icon-wrapper rounded-3 overflow-hidden me-3 d-flex align-items-center justify-content-center bg-light border" style="width: 48px; height: 48px; min-width: 48px;">
+                                                    @if ($isImage)
+                                                        <img src="{{ asset('storage/' . $doc) }}" alt="Preview" class="w-100 h-100 object-fit-cover">
+                                                    @elseif ($isPdf)
+                                                        <div class="w-100 h-100 bg-danger-subtle text-danger d-flex align-items-center justify-content-center">
+                                                            <i class="far fa-file-pdf fs-22"></i>
+                                                        </div>
+                                                    @elseif ($isDoc)
+                                                        <div class="w-100 h-100 bg-primary-subtle text-primary d-flex align-items-center justify-content-center">
+                                                            <i class="far fa-file-word fs-22"></i>
+                                                        </div>
+                                                    @elseif ($isExcel)
+                                                        <div class="w-100 h-100 bg-success-subtle text-success d-flex align-items-center justify-content-center">
+                                                            <i class="far fa-file-excel fs-22"></i>
+                                                        </div>
+                                                    @else
+                                                        <div class="w-100 h-100 bg-secondary-subtle text-secondary d-flex align-items-center justify-content-center">
+                                                            <i class="far fa-file-alt fs-22"></i>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="document-info flex-grow-1 min-w-0">
+                                                    <h6 class="mb-1 text-dark text-truncate fw-semibold" style="font-size: 13px;">Doc {{ $index + 1 }}</h6>
+                                                    <span class="badge bg-light text-muted border text-uppercase fs-10 fw-semibold px-2 py-0.5">{{ $extension ?: 'FILE' }}</span>
+                                                </div>
+                                                <div class="document-actions ms-auto d-flex align-items-center gap-2">
+                                                    @if ($isImage)
+                                                        <a href="{{ asset('storage/' . $doc) }}" 
+                                                           class="btn btn-sm btn-light border-0 shadow-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center action-btn-fancy btn-fancy-preview" 
+                                                           style="width: 34px; height: 34px;"
+                                                           data-fancybox="customer-docs"
+                                                           data-caption="Document {{ $index + 1 }}"
+                                                           title="Preview Image">
+                                                            <i class="iconoir-eye fs-16 text-primary"></i>
+                                                        </a>
+                                                    @elseif ($isPdf)
+                                                        <a href="{{ asset('storage/' . $doc) }}" 
+                                                           class="btn btn-sm btn-light border-0 shadow-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center action-btn-fancy btn-fancy-preview" 
+                                                           style="width: 34px; height: 34px;"
+                                                           data-fancybox="customer-docs"
+                                                           data-type="pdf"
+                                                           data-caption="Document {{ $index + 1 }} (PDF)"
+                                                           title="Preview PDF">
+                                                            <i class="iconoir-eye fs-16 text-primary"></i>
+                                                        </a>
+                                                    @else
+                                                        <a href="{{ asset('storage/' . $doc) }}" 
+                                                           class="btn btn-sm btn-light border-0 shadow-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center action-btn-fancy btn-fancy-preview" 
+                                                           style="width: 34px; height: 34px;"
+                                                           data-fancybox="customer-docs"
+                                                           data-type="iframe"
+                                                           data-caption="Document {{ $index + 1 }}"
+                                                           title="Preview Document">
+                                                            <i class="iconoir-eye fs-16 text-primary"></i>
+                                                        </a>
+                                                    @endif
+                                                    <a href="{{ asset('storage/' . $doc) }}" 
+                                                       download 
+                                                       class="btn btn-sm btn-light border-0 shadow-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center action-btn-fancy btn-fancy-download" 
+                                                       style="width: 34px; height: 34px;"
+                                                       title="Download Document">
+                                                        <i class="iconoir-download fs-16 text-success"></i>
+                                                    </a>
+                                                </div>
                                             </div>
                                         </div>
                                     @endforeach
@@ -214,7 +277,7 @@
                                                 </td>
                                                 <td class="text-end pe-3">
                                                     <a href="{{ route('invoice.show', $invoice->id) }}"
-                                                        class="btn btn-sm btn-light border-0 shadow-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center"
+                                                        class="btn btn-sm btn-light border-0 shadow-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center action-btn-fancy btn-fancy-preview"
                                                         style="width: 28px; height: 28px;">
                                                         <i class="iconoir-eye fs-14 text-primary"></i>
                                                     </a>
@@ -230,4 +293,38 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('pageCss')
+    <!-- Fancybox 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" type="text/css" />
+@endsection
+
+@section('pageScripts')
+    <!-- Fancybox 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Bind Fancybox to all matching elements with dynamic support for images, pdfs, and other iframes
+            Fancybox.bind('[data-fancybox="customer-docs"]', {
+                Compact: false,
+                Idle: false,
+                Animated: true,
+                dragToClose: true,
+                Toolbar: {
+                    display: {
+                        left: ["infobar"],
+                        middle: [],
+                        right: ["slideshow", "download", "thumbs", "close"],
+                    },
+                },
+                Html: {
+                    pdf: {
+                        // PDF viewing options
+                        type: "pdf"
+                    }
+                }
+            });
+        });
+    </script>
 @endsection

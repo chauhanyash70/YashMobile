@@ -82,7 +82,7 @@
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body d-flex align-items-center">
                         <div class="me-3 bg-success text-white rounded-circle p-2 shadow-sm">
-                            <i class="iconoir-dollar iconoir" style="font-size: 1.5rem;"></i>
+                            <i class="las la-rupee-sign" style="font-size: 1.5rem;"></i>
                         </div>
                         <div>
                             <h3 class="mb-0 fw-bold" id="periodProfit">₹0</h3>

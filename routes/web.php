@@ -14,6 +14,10 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Auth::routes();
 
+Route::post('/login/pre-check', [\App\Http\Controllers\Auth\LoginController::class, 'loginPreCheck'])->name('login.pre-check');
+Route::post('/login/verify-otp', [\App\Http\Controllers\Auth\LoginController::class, 'verify2FaOtp'])->name('login.verify-otp');
+Route::post('/login/resend-otp', [\App\Http\Controllers\Auth\LoginController::class, 'resendOtp'])->name('login.resend-otp');
+
 Route::group(['middleware' => ['auth']], function () {
 	Route::get('mobiles/search-global', [\App\Http\Controllers\MobileController::class, 'search'])->name('mobiles.searchGlobal');
 

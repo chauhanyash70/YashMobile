@@ -18,7 +18,7 @@
                             <div class="row align-items-end">
                                 <div class="col-auto">
                                     <div class="mt-n5 position-relative">
-                                        <a href="{{ $customer->profile_url }}" class="lightbox">
+                                        <a href="{{ $customer->profile_url }}">
                                             <img src="{{ $customer->profile_url }}" alt="" height="120"
                                                 width="120"
                                                 class="rounded-circle border border-4 border-card-bg shadow-sm object-fit-cover">

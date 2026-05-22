@@ -50,7 +50,7 @@
                             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 28px;">
                                 <tr>
                                     <td align="center">
-                                        <img src="{{ asset('assets/logo/yash-mobile-logo.svg') }}" alt="Yash Mobile" height="40" width="70" style="display: block; border: 0; outline: none; text-decoration: none;">
+                                        <img src="{{ asset('assets/logo/yash-mobile-logo.svg') }}" alt="Yash Mobile" height="40" style="display: block; border: 0; outline: none; text-decoration: none;">
                                         <div style="width: 40px; height: 3px; background-color: #f87d1f; border-radius: 2px; margin-top: 12px;"></div>
                                     </td>
                                 </tr>

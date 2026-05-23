@@ -42,6 +42,9 @@ class HomeController extends Controller
 		$startDate = $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : Carbon::today()->startOfDay();
 		$endDate = $request->end_date ? Carbon::parse($request->end_date)->endOfDay() : Carbon::today()->endOfDay();
 
+		// Available mobile count (in_stock)
+		$availableMobileCount = \App\Models\Mobile::where('status', 'in_stock')->count();
+
 		// Low stock accessories
 		$lowStockAccessories = \App\Models\Accessory::with('brand')->where('stock', '<=', 5)->orderBy('stock', 'asc')->take(10)->get();
 
@@ -157,6 +160,7 @@ class HomeController extends Controller
 			'accessorySalesCount' => $accessorySalesCount,
 			'accessorySalesRevenue' => $accessorySalesRevenue,
 			'profit' => $periodProfit,
+			'availableMobileCount' => $availableMobileCount,
 			'dates' => $dates,
 			'chartData' => $chartData,
 			'lowStockHtml' => view('partials.low-stock', ['lowStockAccessories' => $lowStockAccessories])->render()

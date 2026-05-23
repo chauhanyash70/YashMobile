@@ -46,9 +46,9 @@
         <!-- TOP CARDS -->
         <div class="row g-3">
             <!-- Mobile Sales -->
-            <div class="col-xl-4 col-lg-6 col-md-6">
+            <div class="col-xl-3 col-lg-6 col-md-6">
                 <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body d-flex align-items-center">
+                    <div class="card-body d-flex align-items-center justify-content-between">
                         <div class="me-3 bg-primary text-white rounded-circle p-2 shadow-sm">
                             <i class="iconoir-smartphone-device iconoir" style="font-size: 1.5rem;"></i>
                         </div>
@@ -62,9 +62,9 @@
             </div>
 
             <!-- Accessory Sales -->
-            <div class="col-xl-4 col-lg-6 col-md-6">
+            <div class="col-xl-3 col-lg-6 col-md-6">
                 <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body d-flex align-items-center">
+                    <div class="card-body d-flex align-items-center justify-content-between">
                         <div class="me-3 bg-warning text-white rounded-circle p-2 shadow-sm">
                             <i class="iconoir-headset iconoir" style="font-size: 1.5rem;"></i>
                         </div>
@@ -78,15 +78,30 @@
             </div>
 
             <!-- Profit -->
-            <div class="col-xl-4 col-lg-6 col-md-6">
+            <div class="col-xl-3 col-lg-6 col-md-6">
                 <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body d-flex align-items-center">
+                    <div class="card-body d-flex align-items-center justify-content-between">
                         <div class="me-3 bg-success text-white rounded-circle p-2 shadow-sm">
                             <i class="las la-rupee-sign" style="font-size: 1.5rem;"></i>
                         </div>
                         <div>
                             <h3 class="mb-0 fw-bold" id="periodProfit">₹0</h3>
                             <p class="text-muted small mb-0">Period Profit</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Mobiles -->
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex align-items-center justify-content-between">
+                        <div class="me-3 text-white rounded-circle p-2 shadow-sm" style="background-color:#0d9488;">
+                            <i class="iconoir-phone-paused iconoir" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold" id="availableMobileCount">0</h3>
+                            <p class="text-muted small mb-1">Available Mobiles</p>
                         </div>
                     </div>
                 </div>
@@ -180,6 +195,14 @@
                             duration: 1000,
                             step: function (now) {
                                 $(this).text('₹' + now.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                            }
+                        });
+                        $('#availableMobileCount').prop('Counter', 0).animate({
+                            Counter: res.availableMobileCount
+                        }, {
+                            duration: 1000,
+                            step: function (now) {
+                                $(this).text(Math.ceil(now));
                             }
                         });
 

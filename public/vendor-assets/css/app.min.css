@@ -6101,3 +6101,7 @@ tbody[data-repeater-list] tr[data-repeater-item]:first-child [data-repeater-dele
 div.dt-container div.dt-length select{
 	width: 70px !important;
 }
+
+[class*=" iconoir-"], [class^=iconoir-]{
+	display: block
+}

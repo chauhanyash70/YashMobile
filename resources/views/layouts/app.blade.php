@@ -33,7 +33,6 @@
 	<link href="{{ asset('vendor-assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
 	<link href="{{ asset('assets/js/toastr/toastr.min.css') }}" rel="stylesheet" type="text/css" />
 	<link rel="stylesheet" href="{{ asset('vendor-assets/libs/jsvectormap/css/jsvectormap.min.css') }}">
-	<!-- Sweet Alert -->
 	<link href="{{ asset('vendor-assets/libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css">
 	<link href="{{ asset('vendor-assets/libs/animate.css/animate.min.css') }}" rel="stylesheet" type="text/css">
 	<link href="{{ asset('vendor-assets/libs/tobii/css/tobii.min.css') }}" rel="stylesheet" type="text/css">
@@ -164,78 +163,6 @@
 				}
 			});
 		}
-
-		/* function initImageUploader(dropAreaId, fileInputId, galleryId, formInputId) {
-			const dropArea = document.getElementById(dropAreaId);
-			const fileElem = document.getElementById(fileInputId);
-			const gallery = document.getElementById(galleryId);
-			const formImagesInput = document.getElementById(formInputId);
-
-			let filesArray = [];
-
-			dropArea.addEventListener('dragover', (e) => {
-				e.preventDefault();
-				dropArea.classList.add('hover');
-			});
-
-			dropArea.addEventListener('dragleave', () => {
-				dropArea.classList.remove('hover');
-			});
-
-			dropArea.addEventListener('drop', (e) => {
-				e.preventDefault();
-				dropArea.classList.remove('hover');
-				handleFiles(e.dataTransfer.files);
-			});
-
-			fileElem.addEventListener('change', (e) => {
-				handleFiles(e.target.files);
-			});
-
-			dropArea.addEventListener('click', () => {
-				fileElem.click();
-			});
-
-			function handleFiles(files) {
-				for (let file of files) {
-					if (!file.type.startsWith('image/')) continue;
-					if (filesArray.some(f => f.name === file.name && f.size === file.size)) continue;
-
-					filesArray.push(file);
-
-					const reader = new FileReader();
-					reader.onload = (e) => {
-						const wrapper = document.createElement('div');
-						wrapper.className = 'img-wrapper';
-
-						const img = document.createElement('img');
-						img.src = e.target.result;
-
-						const removeBtn = document.createElement('button');
-						removeBtn.innerText = '×';
-						removeBtn.className = 'img-remove';
-						removeBtn.type = 'button';
-						removeBtn.onclick = () => {
-							wrapper.remove();
-							filesArray = filesArray.filter(f => f !== file);
-							syncFormInput();
-						};
-
-						wrapper.appendChild(img);
-						wrapper.appendChild(removeBtn);
-						gallery.appendChild(wrapper);
-					};
-					reader.readAsDataURL(file);
-				}
-				syncFormInput();
-			}
-
-			function syncFormInput() {
-				const dataTransfer = new DataTransfer();
-				filesArray.forEach(file => dataTransfer.items.add(file));
-				formImagesInput.files = dataTransfer.files;
-			}
-		} */
 		function initImageUploader(dropAreaId, fileInputId, galleryId, formInputId, existingImages = []) {
 			const dropArea = document.getElementById(dropAreaId);
 			const fileElem = document.getElementById(fileInputId);

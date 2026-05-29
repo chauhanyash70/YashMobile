@@ -399,11 +399,11 @@
         </div>
 
         <div class="disclaimer-title">
-            IMPORTANT NOTICE: TERMS, CONDITIONS & WATER DAMAGE DISCLAIMER
+            IMPORTANT NOTICE: TERMS, CONDITIONS & WATERDAMAGE DISCLAIMER
         </div>
 
         <div style="font-size: 11px; line-height: 1.4; color: #222; margin-bottom: 10px;">
-            <strong>Dear Valued Customer,</strong> Please read this document carefully. By conducting business with Yash Mobile, you agree to the terms, conditions, warranty policies, and liability disclaimers outlined below.
+            <strong>Dear {{ $customerName }},</strong> Please read this document carefully. By conducting business with Yash Mobile, you agree to the terms, conditions, warranty policies, and liability disclaimers outlined below.
         </div>
 
         <table style="width: 100%; border-collapse: collapse; margin-top: 5px; margin-bottom: 10px;">
@@ -424,8 +424,10 @@
                             <li><strong>24-Hour Warranty:</strong> Applies strictly to internal motherboard/hardware issues only.</li>
                             <li><strong>No Warranty Coverage:</strong> Screen/Displays (including green lines/touch issues), batteries, charging ports, cameras, and physical/liquid damages are explicitly excluded.</li>
                             <li><strong>"AS-IS" Condition:</strong> Devices are sold "As-Is". Customers must inspect, test all features, and log in to accounts (Apple ID/Google Account) before leaving.</li>
-                            <li><strong>No Returns/Refunds:</strong> Once sold, devices are non-refundable and non-exchangeable after 24 hours.</li>
+                            <li><strong>No Returns/Refunds:</strong> Once sold, devices purchased under <strong>Bajaj Finance</strong> are <strong style="color: red; font-size: 11px;">NON-REFUNDABLE</strong> and <strong style="color: red; font-size: 11px;">NON-EXCHANGEABLE</strong>.</li>
                             <li><strong>Bill Requirement:</strong> The original store invoice is mandatory for processing any claims.</li>
+                            <li><strong>Note:</strong> Devices sold through <strong>BAJAJ FINANCE</strong> are strictly <strong style="color: red; font-size: 11px;">NON-REFUNDABLE</strong> once the sale is processed and the device is handed over to the customer.</li>
+                            <li><strong>Note:</strong> Devices purchased under <strong>Bajaj Finance</strong> are absolutely <strong style="color: red; font-size: 11px;">NON-REFUNDABLE</strong>.</li>
                         </ul>
 
                         <p style="margin: 4px 0 1px 0;"><strong>3. Accessories:</strong></p>
@@ -451,6 +453,8 @@
 
                         <p style="margin: 4px 0 1px 0;"><strong>4. Post-Repair Warning:</strong></p>
                         <div style="padding-left: 3px;">Opening a device breaks its waterproof seal. Original water-resistance CANNOT be guaranteed after repair. Keep repaired units strictly dry.</div>
+                        <p style="margin: 4px 0 1px 0;"><strong>5. Please Note:</strong></p>
+                        <div style="padding-left: 3px; color: red; font-weight: bold;">In the event of any water or liquid damage, the entire cost of inspection, parts, and repair will be borne solely by the customer.</div>
                     </div>
                 </td>
             </tr>

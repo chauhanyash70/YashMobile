@@ -134,7 +134,7 @@
 
         .signature-table {
             width: 100%;
-            margin-top: 35px;
+            margin-top: 160px;
         }
 
         .signature-table td {

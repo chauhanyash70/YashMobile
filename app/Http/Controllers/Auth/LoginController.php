@@ -77,7 +77,7 @@ class LoginController extends Controller
         // Store pre-auth state in session
         session([
             'otp_user_id' => $user->id,
-            'otp_remember' => $request->filled('remember'),
+            'otp_remember' => $request->boolean('remember'),
         ]);
 
         // Trigger OTP dispatch

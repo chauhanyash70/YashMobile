@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 use App\Models\Device;
 use App\Models\Accessory;
 use App\Http\Traits\Traits;
+use App\Exports\CustomerExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
@@ -187,5 +189,10 @@ class CustomerController extends Controller
 		$customer->invoices()->delete();
 		$customer->delete();
 		return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
+	}
+
+	public function export()
+	{
+		return Excel::download(new CustomerExport, 'customers_export_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
 	}
 }

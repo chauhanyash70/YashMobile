@@ -58,6 +58,7 @@ Route::group(['middleware' => ['auth']], function () {
 	});
 
 	/* Customer Route */
+	Route::get('/customers/export', [\App\Http\Controllers\CustomerController::class, 'export'])->name('customers.export');
 	Route::resource('customers', \App\Http\Controllers\CustomerController::class);
 	Route::post('/customers/get-data', [\App\Http\Controllers\CustomerController::class, 'getCustomerData'])->name('getCustomerData');
 

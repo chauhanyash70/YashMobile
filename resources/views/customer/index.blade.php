@@ -16,8 +16,11 @@
 								<h4 class="card-title">{{ $title }}</h4>
 							</div>
 							<div class="col-auto">
-								{{-- <a href="{{ route('admin.invoice.create') }}"
-									class="btn btn-primary btn-sm px-2 mt-2 mt-md-0 ">Create Invoice</a> --}}
+								<a href="{{ route('customers.export') }}"
+									class="btn btn-outline-success btn-sm px-3 mt-2 mt-md-0 d-flex align-items-center gap-1">
+									<i class="iconoir-download fs-14"></i>
+									Export Customers
+								</a>
 							</div>
 						</div>
 					</div>

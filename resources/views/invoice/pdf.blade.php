@@ -285,18 +285,18 @@
                 <td><strong>Invoice No:</strong> <br>#{{ $invoice->invoice_no }}</td>
                 <td><strong>Date:</strong> <br>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d-m-Y') }} <br>
                     <strong>Payment Method:</strong>
-                    <br>{{ $invoice->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst($invoice->payment_method ?? 'N/A') }}
+                    <br>{{ $invoice->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst($invoice->payment_method ?? '') }}
                     @if ($invoice->bajaj_approval_number)
                         <br><strong>Bajaj Appr No:</strong> {{ $invoice->bajaj_approval_number }}
                     @endif
                 </td>
             </tr>
             <tr>
-                <td><strong>Invoice To:</strong> <br>{{ $invoice->customer ? $invoice->customer->name : 'N/A' }} <br>
+                <td><strong>Invoice To:</strong> <br>{{ $invoice->customer ? $invoice->customer->name : '' }} <br>
                     <strong>Mobile:</strong>
-                    <br>{{ $invoice->customer ? $invoice->customer->phone : 'N/A' }}
+                    <br>{{ $invoice->customer ? $invoice->customer->phone : '' }}
                 </td>
-                <td><strong>Address:</strong> <br>{{ $invoice->customer ? $invoice->customer->address : 'N/A' }}</td>
+                <td><strong>Address:</strong> <br>{{ $invoice->customer ? $invoice->customer->address : '' }}</td>
             </tr>
         </table>
 
@@ -384,9 +384,9 @@
                 }
             }
         }
-        $deviceModelsStr = !empty($deviceModels) ? implode(', ', array_unique($deviceModels)) : 'N/A';
-        $deviceIMEIsStr = !empty($deviceIMEIs) ? implode(', ', array_unique($deviceIMEIs)) : 'N/A';
-        $customerName = $invoice->customer ? $invoice->customer->name : 'N/A';
+        $deviceModelsStr = !empty($deviceModels) ? implode(', ', array_unique($deviceModels)) : '';
+        $deviceIMEIsStr = !empty($deviceIMEIs) ? implode(', ', array_unique($deviceIMEIs)) : '';
+        $customerName = $invoice->customer ? $invoice->customer->name : '';
         $invoiceDateStr = \Carbon\Carbon::parse($invoice->invoice_date)->format('d / m / Y');
     @endphp
 

@@ -274,6 +274,7 @@
     <!-- Watermark -->
     <div class="watermark"></div>
 
+    @if(($printType ?? 'both') === 'both' || ($printType ?? 'both') === 'invoice')
     <div class="container">
         <div class="header">
             <img src="{{ public_path('assets/logo/yash-mobile-logo.png') }}" class="logo" alt="Company Logo">
@@ -368,6 +369,7 @@
             <p>Shop No. 13, Center Point, Opp. Rudrax Cinema, Una - 362560</p>
         </div>
     </div>
+    @endif
 
     @php
         $deviceModels = [];
@@ -388,9 +390,12 @@
         $invoiceDateStr = \Carbon\Carbon::parse($invoice->invoice_date)->format('d / m / Y');
     @endphp
 
+    @if(($printType ?? 'both') === 'both')
     <!-- PAGE BREAK -->
     <div class="page-break"></div>
+    @endif
 
+    @if(($printType ?? 'both') === 'both' || ($printType ?? 'both') === 'tandc')
     <!-- PAGE 2: DISCLAIMER -->
     <div class="disclaimer-container">
         <div class="disclaimer-header">
@@ -510,6 +515,7 @@
             Thank you for your cooperation and business!
         </div>
     </div>
+    @endif
 </body>
 
 </html>

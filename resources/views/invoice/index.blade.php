@@ -99,7 +99,7 @@
                         return `
 								<a href="${full.show_url}" class="btn btn-sm btn-outline-secondary"><i class="iconoir-page text-secondary fs-18"></i></a>
 								<a href="${full.edit_url}" class="btn btn-sm btn-outline-info"><i class="iconoir-edit text-info fs-18"></i></a>
-								<a href="${full.pdf_url}" class="btn btn-sm btn-outline-primary"><i class="iconoir-page-star text-primary fs-18"></i></a>
+								<button class="btn btn-sm btn-outline-primary" onclick="showPdfModal('${full.pdf_url}')"><i class="iconoir-page-star text-primary fs-18"></i></button>
 								<button class="btn btn-sm btn-outline-danger" onclick="deleteInvoice(${full.id})"><i class="iconoir-trash text-danger fs-18"></i></button>
 							`;
                     }
@@ -143,6 +143,45 @@
                             );
                         }
                     });
+                }
+            });
+        }
+
+        // Show PDF Download Modal
+        function showPdfModal(pdfUrl) {
+            Swal.fire({
+                title: '<span class="text-primary fw-bold">Print / Download Options</span>',
+                html: `
+                    <div class="text-start p-2">
+                        <p class="text-muted fs-13 mb-3">Choose what pages you want to include in the generated PDF document:</p>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="includeTandC" checked style="cursor: pointer;">
+                            <label class="form-check-label fw-semibold text-dark fs-14 ms-2" for="includeTandC" style="cursor: pointer;">
+                                Include Terms, Conditions & Disclaimer
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1">If turned off, only the invoice page will be printed.</small>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '<span class="d-inline-flex align-items-center"><i class="iconoir-download me-1"></i> Download PDF</span>',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    confirmButton: 'btn btn-primary me-2',
+                    cancelButton: 'btn btn-danger'
+                },
+                buttonsStyling: false,
+                preConfirm: () => {
+                    return {
+                        includeTandC: document.getElementById('includeTandC').checked
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const includeTandC = result.value.includeTandC;
+                    const type = includeTandC ? 'both' : 'invoice';
+                    const finalUrl = pdfUrl + (pdfUrl.includes('?') ? '&' : '?') + 'type=' + type;
+                    window.open(finalUrl, '_blank');
                 }
             });
         }

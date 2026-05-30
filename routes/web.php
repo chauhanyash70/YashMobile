@@ -43,6 +43,7 @@ Route::group(['middleware' => ['auth']], function () {
 			Route::put('/update/{id}', 'update')->name('update');
 			Route::post('/delete/{id}', 'destroy')->name('destroy');
 			Route::get('/generate-pdf/{id}', 'generateInvoicePdf')->name('generatePdf');
+			Route::get('/print-tandc', 'generateTandcPdf')->name('printTandc');
 			Route::get('/get-product-by-barcode/{barcode}', 'getProductByBarcode')->name('getProductByBarcode');
 			Route::post('/get/customer', 'getCustomer')->name('getCustomer');
 			Route::post('/get/supplier', 'getSupplier')->name('getSupplier');

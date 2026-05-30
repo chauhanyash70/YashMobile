@@ -244,9 +244,9 @@
                                 </div>
                             </div>
                             <div class="col-lg-12 col-xl-4">
-                                <div class="float-end d-print-none mt-2 mt-md-0">
-                                    <a href="{{ route('invoice.generatePdf', $invoice->id) }}"
-                                        class="btn btn-secondary">Download PDF</a>
+                                 <div class="float-end d-print-none mt-2 mt-md-0">
+                                    <button onclick="showPdfModal('{{ route('invoice.generatePdf', $invoice->id) }}')"
+                                        class="btn btn-secondary">Download PDF</button>
                                     <a href="{{ route('invoice.index') }}" class="btn btn-danger">Back</a>
                                 </div>
                             </div>
@@ -256,4 +256,46 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('pageScripts')
+    <script>
+        function showPdfModal(pdfUrl) {
+            Swal.fire({
+                title: '<span class="text-primary fw-bold">Print / Download Options</span>',
+                html: `
+                    <div class="text-start p-2">
+                        <p class="text-muted fs-13 mb-3">Choose what pages you want to include in the generated PDF document:</p>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="includeTandC" checked style="cursor: pointer;">
+                            <label class="form-check-label fw-semibold text-dark fs-14 ms-2" for="includeTandC" style="cursor: pointer;">
+                                Include Terms, Conditions & Disclaimer
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1">If turned off, only the invoice page will be printed.</small>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '<span class="d-inline-flex align-items-center"><i class="iconoir-download me-1"></i> Download PDF</span>',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    confirmButton: 'btn btn-primary me-2',
+                    cancelButton: 'btn btn-danger'
+                },
+                buttonsStyling: false,
+                preConfirm: () => {
+                    return {
+                        includeTandC: document.getElementById('includeTandC').checked
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const includeTandC = result.value.includeTandC;
+                    const type = includeTandC ? 'both' : 'invoice';
+                    const finalUrl = pdfUrl + (pdfUrl.includes('?') ? '&' : '?') + 'type=' + type;
+                    window.open(finalUrl, '_blank');
+                }
+            });
+        }
+    </script>
 @endsection

@@ -36,6 +36,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {{ Route::is('invoice.printTandc') ? 'active' : '' }}"
+                            href="{{ route('invoice.printTandc') }}" target="_blank">
+                            <i class="iconoir-page menu-icon"></i>
+                            <span>T&C Print</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {{ Route::is('mobiles.index') ? 'active' : '' }}"
                             href="{{ route('mobiles.index') }}">
                             <i class="iconoir-smartphone-device menu-icon"></i>

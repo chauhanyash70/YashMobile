@@ -790,8 +790,7 @@ class InvoiceController extends Controller
     public function generateInvoicePdf(Request $request, $id)
     {
         $invoice = Invoice::with(['customer', 'items.mobile.brand', 'items.mobile.model', 'items.accessory.brand'])->findOrFail($id);
-        $printType = $request->query('type', 'both'); // 'both', 'invoice', or 'tandc'
-        $pdf = Pdf::loadView('invoice.pdf', compact('invoice', 'printType'));
+        $pdf = Pdf::loadView('invoice.pdf_invoice', compact('invoice'));
 
         // Render PDF first to allow canvas access
         $pdf->render();
@@ -812,11 +811,10 @@ class InvoiceController extends Controller
     public function generateTandcPdf()
     {
         $invoice = new Invoice;
-        $invoice->invoice_date = now();
+        $invoice->invoice_date = null;
         $invoice->customer = null;
         $invoice->items = collect([]);
-        $printType = 'tandc';
-        $pdf = Pdf::loadView('invoice.pdf', compact('invoice', 'printType'));
+        $pdf = Pdf::loadView('invoice.pdf_tandc', compact('invoice'));
 
         // Render PDF first to allow canvas access
         $pdf->render();

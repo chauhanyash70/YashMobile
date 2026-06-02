@@ -10,10 +10,6 @@
 								document.write(new Date().getFullYear())
 							</script>
 							{{config('app.name')}}
-							<span class="text-muted d-none d-sm-inline-block float-end">
-								Crafted with
-								<i class="iconoir-heart text-danger"></i>
-								by {{config('app.name')}}</span>
 						</p>
 					</div>
 				</div>

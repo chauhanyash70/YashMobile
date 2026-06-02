@@ -133,14 +133,14 @@
                                                 class="text-danger">*</span></label>
                                         <input type="number" step="0.01" name="buy_price"
                                             class="form-control buy-price-field" value="{{ number_format($displayTransaction->price ?? 0, 2, '.', '') }}"
-                                            required {{ $isSold ? 'readonly' : '' }}>
+                                            required>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small text-muted">{{ $dateLabel }} <span
                                                 class="text-danger">*</span></label>
                                         <input type="date" name="purchase_date" class="form-control"
                                             value="{{ $displayTransaction ? \Carbon\Carbon::parse($displayTransaction->transaction_date)->format('Y-m-d') : date('Y-m-d') }}"
-                                            required {{ $isSold ? 'readonly' : '' }}>
+                                            required>
                                     </div>
 
                                     <div class="col-12">
@@ -154,20 +154,20 @@
                                         <label class="form-label small text-muted">{{ $labelPrefix }} Phone <span
                                                 class="text-danger">*</span></label>
                                         <input type="text" name="supplier_phone" class="form-control supplier-phone"
-                                            value="{{ $customer->phone ?? '' }}" required {{ $isSold ? 'readonly' : '' }}>
+                                            value="{{ $customer->phone ?? '' }}" required>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small text-muted">{{ $labelPrefix }} Name <span
                                                 class="text-danger">*</span></label>
                                         <input type="text" name="supplier_name" class="form-control supplier-name"
-                                            value="{{ $customer->name ?? '' }}" required {{ $isSold ? 'readonly' : '' }}>
+                                            value="{{ $customer->name ?? '' }}" required>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small text-muted">{{ $labelPrefix }} Address <span
                                                 class="text-danger">*</span></label>
                                         <input type="text" name="supplier_address"
                                             class="form-control supplier-address" value="{{ $customer->address ?? '' }}"
-                                            required {{ $isSold ? 'readonly' : '' }}>
+                                            required>
                                     </div>
                                 </div>
                             </div>
@@ -180,7 +180,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-primary fw-semibold">Note: Changes will apply to this unit and its
                                 history.</span>
-                            <button type="submit" class="btn btn-primary px-5">
+                            <button type="submit" class="btn btn-primary px-5 d-flex justify-content-center align-items-center">
                                 <i class="iconoir-check-circle me-1"></i>Save All Changes
                             </button>
                         </div>

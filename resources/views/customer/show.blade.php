@@ -18,7 +18,7 @@
                             <div class="row align-items-end">
                                 <div class="col-auto">
                                     <div class="mt-n5 position-relative">
-                                        <a href="{{ $customer->profile_url }}">
+                                        <a href="{{ $customer->profile_url }}" data-fancybox="customer-profile" data-caption="{{ $customer->name }}">
                                             <img src="{{ $customer->profile_url }}" alt="" height="120"
                                                 width="120"
                                                 class="rounded-circle border border-4 border-card-bg shadow-sm object-fit-cover">
@@ -306,7 +306,7 @@
     <script>
         $(document).ready(function() {
             // Bind Fancybox to all matching elements with dynamic support for images, pdfs, and other iframes
-            Fancybox.bind('[data-fancybox="customer-docs"]', {
+            Fancybox.bind('[data-fancybox]', {
                 Compact: false,
                 Idle: false,
                 Animated: true,

@@ -786,26 +786,99 @@ class InvoiceController extends Controller
             'tagline' => 'Detailed breakdown of the items and payment information.',
         ]);
     }
+    /**
+     * Get the path to the qpdf executable if available.
+     *
+     * @return string|null
+     */
+    protected function getQpdfPath(): ?string
+    {
+        if (!function_exists('exec')) {
+            return null;
+        }
+
+        // 1. Check if qpdf is in the system PATH
+        $command = PHP_OS_FAMILY === 'Windows' ? 'where qpdf' : 'which qpdf';
+        exec($command, $output, $returnVar);
+
+        if ($returnVar === 0 && !empty($output)) {
+            $path = trim(is_array($output) ? $output[0] : $output);
+            if (!empty($path)) {
+                return $path;
+            }
+        }
+
+        // 2. Fallback check for common Windows installation paths
+        if (PHP_OS_FAMILY === 'Windows') {
+            $commonPatterns = [
+                'C:\\Program Files\\qpdf*\\bin\\qpdf.exe',
+                'C:\\Program Files (x86)\\qpdf*\\bin\\qpdf.exe',
+            ];
+            foreach ($commonPatterns as $pattern) {
+                $matches = glob($pattern);
+                if (!empty($matches)) {
+                    return $matches[0];
+                }
+            }
+        }
+
+        return null;
+    }
 
     public function generateInvoicePdf(Request $request, $id)
     {
         $invoice = Invoice::with(['customer', 'items.mobile.brand', 'items.mobile.model', 'items.accessory.brand'])->findOrFail($id);
         $pdf = Pdf::loadView('invoice.pdf_invoice', compact('invoice'));
 
-        // Render PDF first to allow canvas access
+        // Render PDF first to allow canvas access/output
         $pdf->render();
 
-        // Secure the PDF to prevent editing/modifications
-        $canvas = $pdf->getDomPDF()->getCanvas();
-        if ($canvas) {
-            $cpdf = $canvas->get_cpdf();
-            if ($cpdf) {
-                // Empty user password so users can open it directly, secure owner password based on the app key, and restrict permissions to print and copy (excluding modify and add).
-                $cpdf->setEncryption('', config('app.key', 'Yash_Mobile'), ['print', 'copy']);
+        $pdfContent = $pdf->output();
+        $qpdfPath = $this->getQpdfPath();
+
+        if ($qpdfPath) {
+            $tempInput = tempnam(sys_get_temp_dir(), 'pdf_in_');
+            $tempOutput = tempnam(sys_get_temp_dir(), 'pdf_out_');
+
+            if ($tempInput && $tempOutput) {
+                file_put_contents($tempInput, $pdfContent);
+                $ownerPassword = config('app.key', 'Yash_Mobile');
+
+                // Run QPDF to encrypt the PDF file with AES-256 and restrict modify/copy permissions.
+                // --encrypt --owner-password=[password] --bits=256 --print=full --modify=none --extract=n -- [input] [output]
+                $cmd = sprintf(
+                    '%s --encrypt --owner-password=%s --bits=256 --print=full --modify=none --extract=n -- %s %s',
+                    escapeshellarg($qpdfPath),
+                    escapeshellarg($ownerPassword),
+                    escapeshellarg($tempInput),
+                    escapeshellarg($tempOutput)
+                );
+
+                exec($cmd, $cmdOutput, $cmdResult);
+
+                if ($cmdResult === 0 && file_exists($tempOutput) && filesize($tempOutput) > 0) {
+                    $pdfContent = file_get_contents($tempOutput);
+                }
+
+                @unlink($tempInput);
+                @unlink($tempOutput);
             }
+        } else {
+            // Fallback to legacy 40-bit RC4 encryption if QPDF is not available
+            $canvas = $pdf->getDomPDF()->getCanvas();
+            if ($canvas) {
+                $cpdf = $canvas->get_cpdf();
+                if ($cpdf) {
+                    $cpdf->setEncryption('', config('app.key', 'Yash_Mobile'), ['print', 'copy']);
+                }
+            }
+            $pdfContent = $pdf->output();
         }
 
-        return $pdf->stream('invoice_'.$invoice->invoice_no.'.pdf');
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="invoice_' . $invoice->invoice_no . '.pdf"',
+        ]);
     }
 
     public function generateTandcPdf()
@@ -816,20 +889,55 @@ class InvoiceController extends Controller
         $invoice->items = collect([]);
         $pdf = Pdf::loadView('invoice.pdf_tandc', compact('invoice'));
 
-        // Render PDF first to allow canvas access
+        // Render PDF first to allow canvas access/output
         $pdf->render();
 
-        // Secure the PDF to prevent editing/modifications
-        $canvas = $pdf->getDomPDF()->getCanvas();
-        if ($canvas) {
-            $cpdf = $canvas->get_cpdf();
-            if ($cpdf) {
-                // Empty user password so users can open it directly, secure owner password based on the app key, and restrict permissions to print and copy (excluding modify and add).
-                $cpdf->setEncryption('', config('app.key', 'secure_owner_pass'), ['print', 'copy']);
+        $pdfContent = $pdf->output();
+        $qpdfPath = $this->getQpdfPath();
+
+        if ($qpdfPath) {
+            $tempInput = tempnam(sys_get_temp_dir(), 'pdf_in_');
+            $tempOutput = tempnam(sys_get_temp_dir(), 'pdf_out_');
+
+            if ($tempInput && $tempOutput) {
+                file_put_contents($tempInput, $pdfContent);
+                $ownerPassword = config('app.key', 'secure_owner_pass');
+
+                // Run QPDF to encrypt the PDF file with AES-256 and restrict modify/copy permissions.
+                // --encrypt --owner-password=[password] --bits=256 --print=full --modify=none --extract=n -- [input] [output]
+                $cmd = sprintf(
+                    '%s --encrypt --owner-password=%s --bits=256 --print=full --modify=none --extract=n -- %s %s',
+                    escapeshellarg($qpdfPath),
+                    escapeshellarg($ownerPassword),
+                    escapeshellarg($tempInput),
+                    escapeshellarg($tempOutput)
+                );
+
+                exec($cmd, $cmdOutput, $cmdResult);
+
+                if ($cmdResult === 0 && file_exists($tempOutput) && filesize($tempOutput) > 0) {
+                    $pdfContent = file_get_contents($tempOutput);
+                }
+
+                @unlink($tempInput);
+                @unlink($tempOutput);
             }
+        } else {
+            // Fallback to legacy 40-bit RC4 encryption if QPDF is not available
+            $canvas = $pdf->getDomPDF()->getCanvas();
+            if ($canvas) {
+                $cpdf = $canvas->get_cpdf();
+                if ($cpdf) {
+                    $cpdf->setEncryption('', config('app.key', 'secure_owner_pass'), ['print', 'copy']);
+                }
+            }
+            $pdfContent = $pdf->output();
         }
 
-        return $pdf->stream('terms_and_conditions.pdf');
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="terms_and_conditions.pdf"',
+        ]);
     }
 
     public function destroy($id)
@@ -928,7 +1036,15 @@ class InvoiceController extends Controller
 
     public function getCustomer(Request $request)
     {
-        $customer = Customer::where('phone', $request->phone)->first();
+        $phone = $request->phone;
+        $cleanPhone = preg_replace('/^\+91|^0/', '', $phone);
+
+        $customer = Customer::where('phone', $phone)
+            ->orWhere('phone', $cleanPhone)
+            ->orWhere('phone', '+91' . $cleanPhone)
+            ->orWhere('phone', '0' . $cleanPhone)
+            ->first();
+
         if ($customer) {
             return response()->json(['status' => true, 'customer' => $customer]);
         }
@@ -938,7 +1054,15 @@ class InvoiceController extends Controller
 
     public function getSupplier(Request $request)
     {
-        $supplier = Customer::where('phone', $request->phone)->first();
+        $phone = $request->phone;
+        $cleanPhone = preg_replace('/^\+91|^0/', '', $phone);
+
+        $supplier = Customer::where('phone', $phone)
+            ->orWhere('phone', $cleanPhone)
+            ->orWhere('phone', '+91' . $cleanPhone)
+            ->orWhere('phone', '0' . $cleanPhone)
+            ->first();
+
         if ($supplier) {
             return response()->json(['status' => true, 'supplier' => $supplier]);
         }

@@ -165,15 +165,10 @@
                         <div class="card-body py-4">
                             <div class="row g-3">
 
-                                {{-- Supplier Phone --}}
                                 <div class="col-md-6">
                                     <label for="supplier_mobile_number" class="form-label">Mobile Number <span
                                             class="text-danger">*</span></label>
-                                    <input type="text"
-                                        class="form-control @error('supplier_mobile_number') is-invalid @enderror"
-                                        id="supplier_mobile_number" name="supplier_mobile_number"
-                                        value="{{ old('supplier_mobile_number') }}" placeholder="e.g. 9876543210"
-                                        required>
+                                    <x-intl-tel-input name="supplier_mobile_number" id="supplier_mobile_number" value="{{ old('supplier_mobile_number') }}" class="@error('supplier_mobile_number') is-invalid @enderror" required />
                                     @error('supplier_mobile_number')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

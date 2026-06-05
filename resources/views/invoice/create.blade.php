@@ -62,12 +62,11 @@
                                     <div>
                                         <strong class="fs-14 d-block mb-2 text-dark">Invoice to : <span
                                                 class="text-danger">*</span></strong>
-                                        <input id="mobile" name="mobile" type="text" class="form-control mb-2"
-                                            placeholder="Enter Mobile">
+                                        <x-intl-tel-input name="mobile" id="mobile" class="mb-2" placeholder="Enter Mobile" />
                                         @error('mobile')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
-                                        <input id="name" name="name" type="text" class="form-control"
+                                        <input id="name" name="name" type="text" class="form-control mt-1"
                                             placeholder="Enter Name">
                                         @error('name')
                                             <span class="text-danger">{{ $message }}</span>
@@ -248,9 +247,7 @@
                                                                             </h6>
                                                                         </div>
                                                                         <div class="col-12 col-md-6 mt-1 mt-md-0">
-                                                                            <input name="supplier_phone" type="text"
-                                                                                class="form-control form-control-sm supplier_phone"
-                                                                                placeholder="Phone Number">
+                                                                            <x-intl-tel-input name="supplier_phone" class="form-control-sm supplier_phone" placeholder="Phone Number" />
                                                                         </div>
                                                                     </div>
 

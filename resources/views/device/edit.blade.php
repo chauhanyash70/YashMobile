@@ -153,8 +153,7 @@
                                     <div class="col-md-4">
                                         <label class="form-label small text-muted">{{ $labelPrefix }} Phone <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" name="supplier_phone" class="form-control supplier-phone"
-                                            value="{{ $customer->phone ?? '' }}" required>
+                                        <x-intl-tel-input name="supplier_phone" class="supplier-phone" value="{{ $customer->phone ?? '' }}" required />
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small text-muted">{{ $labelPrefix }} Name <span

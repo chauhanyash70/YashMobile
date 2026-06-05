@@ -38,6 +38,7 @@
 	<link href="{{ asset('vendor-assets/libs/tobii/css/tobii.min.css') }}" rel="stylesheet" type="text/css">
 	<link href="{{ asset('vendor-assets/libs/cropperjs/cropper.min.css') }}" rel="stylesheet" type="text/css">
 	@yield('pageCss')
+	@stack('pageCss')
 </head>
 
 <body>
@@ -257,6 +258,7 @@
 		}
 	</script>
 	@yield('pageScripts')
+	@stack('pageScripts')
 </body>
 
 </html>

@@ -168,7 +168,7 @@
                                 <div class="col-md-6">
                                     <label for="supplier_mobile_number" class="form-label">Mobile Number <span
                                             class="text-danger">*</span></label>
-                                    <x-intl-tel-input name="supplier_mobile_number" id="supplier_mobile_number" value="{{ old('supplier_mobile_number') }}" class="@error('supplier_mobile_number') is-invalid @enderror" required />
+                                    <x-intl-tel-input name="supplier_mobile_number" id="supplier_mobile_number" value="{{ old('supplier_mobile_number') }}" class="{{ $errors->has('supplier_mobile_number') ? 'is-invalid' : '' }}" required />
                                     @error('supplier_mobile_number')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

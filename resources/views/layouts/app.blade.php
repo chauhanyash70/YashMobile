@@ -39,6 +39,8 @@
 	<link href="{{ asset('vendor-assets/libs/cropperjs/cropper.min.css') }}" rel="stylesheet" type="text/css">
 	@yield('pageCss')
 	@stack('pageCss')
+	<link href="{{ asset('assets/css/datepicker-dark.css') }}?v={{ time() }}" rel="stylesheet" type="text/css" />
+	<link href="{{ asset('assets/css/custom-dark.css') }}?v={{ time() }}" rel="stylesheet" type="text/css" />
 </head>
 
 <body>

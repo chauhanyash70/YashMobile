@@ -59,6 +59,21 @@ $(document).ready(function () {
 		"supplier-address": {
 			required: true,
 		},
+		"sell-price-field": {
+			required: true,
+			number: true,
+			min: 0,
+		},
+		"customer-phone": {
+			required: true,
+			minlength: 10,
+		},
+		"customer-name": {
+			required: true,
+		},
+		"customer-address": {
+			required: true,
+		},
 	});
 
 	// 4. Supplier Lookup
@@ -75,6 +90,26 @@ $(document).ready(function () {
 					if (data && data.status) {
 						$(".supplier-name").val(data.customer.name);
 						$(".supplier-address").val(data.customer.address);
+					}
+				},
+			);
+		}
+	});
+
+	// 5. Customer Lookup
+	$(document).on("blur", ".customer-phone", function () {
+		var phone = $(this).val();
+		if (phone.length >= 10 && typeof supplierSearchUrl !== "undefined") {
+			$.post(
+				supplierSearchUrl,
+				{
+					phone: phone,
+					_token: typeof csrfToken !== "undefined" ? csrfToken : "",
+				},
+				function (data) {
+					if (data && data.status) {
+						$(".customer-name").val(data.customer.name);
+						$(".customer-address").val(data.customer.address);
 					}
 				},
 			);

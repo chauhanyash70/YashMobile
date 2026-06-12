@@ -62,6 +62,9 @@
                 border-color: #dc3545 !important;
                 box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
             }
+            .iti:has(.is-invalid) ~ .invalid-feedback {
+                display: block !important;
+            }
         </style>
     @endpush
     @push('pageScripts')

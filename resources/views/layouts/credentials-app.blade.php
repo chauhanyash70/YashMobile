@@ -79,6 +79,7 @@
         }
     </style>
     @yield('pageCss')
+    <link href="{{ asset('assets/css/custom-dark.css') }}?v={{ time() }}" rel="stylesheet" type="text/css" />
 </head>
 
 <body>

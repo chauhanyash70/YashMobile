@@ -32,9 +32,9 @@
                                         class="avatar-md bg-soft-info rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center">
                                         <i class="iconoir-database fs-24 text-info"></i>
                                     </div>
-                                    <h6 class="text-uppercase text-muted fs-12 mb-1 fw-bold tracking-wider">Storage / RAM
+                                    <h6 class="text-uppercase text-muted fs-12 mb-1 fw-bold tracking-wider">RAM / Storage
                                     </h6>
-                                    <h4 class="mb-0 fw-bold">{{ $mobile->storage ?? 'N/A' }} / {{ $mobile->ram ?? 'N/A' }}
+                                    <h4 class="mb-0 fw-bold">{{ $mobile->ram ?? 'N/A' }} / {{ $mobile->storage ?? 'N/A' }}
                                     </h4>
                                 </div>
                             </div>

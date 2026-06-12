@@ -1,0 +1,231 @@
+/* Datepicker Dark Mode Overrides */
+[data-bs-theme="dark"] .datepicker-picker {
+    background-color: #1e1e24 !important;
+    border: 1px solid #32323a !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5) !important;
+    color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-dropdown .datepicker-picker {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #32323a !important;
+}
+
+[data-bs-theme="dark"] .datepicker-header {
+    border-bottom: 1px solid #2d2d34 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-footer,
+[data-bs-theme="dark"] .datepicker-title {
+    background-color: #17171a !important;
+    border-top: 1px solid #2d2d34 !important;
+    color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-controls .button {
+    background-color: transparent !important;
+    border: 1px solid transparent !important;
+    color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-controls .button:hover {
+    background-color: #2d2d34 !important;
+    border-color: #32323a !important;
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .datepicker-controls .button:active {
+    background-color: #32323a !important;
+}
+
+[data-bs-theme="dark"] .datepicker-controls .button:focus {
+    border-color: var(--main-color) !important;
+}
+
+[data-bs-theme="dark"] .datepicker-header .datepicker-controls .button:hover {
+    background-color: #2d2d34 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-header .datepicker-controls .button:active {
+    background-color: #32323a !important;
+}
+
+[data-bs-theme="dark"] .datepicker .dow {
+    color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell {
+    color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell:not(.disabled):hover {
+    background-color: #2d2d34 !important;
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.focused:not(.selected) {
+    background-color: #32323a !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.selected,
+[data-bs-theme="dark"] .datepicker-cell.selected:hover {
+    background-color: var(--main-color) !important; /* Theme orange highlight */
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.disabled {
+    color: #475569 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.next:not(.disabled),
+[data-bs-theme="dark"] .datepicker-cell.prev:not(.disabled) {
+    color: #64748b !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.next.selected,
+[data-bs-theme="dark"] .datepicker-cell.prev.selected {
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.highlighted:not(.selected):not(.range):not(.today) {
+    background-color: #17171a !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.highlighted:not(.selected):not(.range):not(.today):not(.disabled):hover {
+    background-color: #2d2d34 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.today:not(.selected) {
+    background-color: rgba(253, 95, 0, 0.15) !important;
+    color: var(--main-color) !important;
+    font-weight: 600 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.today:not(.selected):not(.disabled) {
+    color: var(--main-color) !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.today.focused:not(.selected) {
+    background-color: rgba(253, 95, 0, 0.25) !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.range-end:not(.selected),
+[data-bs-theme="dark"] .datepicker-cell.range-start:not(.selected) {
+    background-color: #475569 !important;
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.range {
+    background-color: #334155 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.range:not(.disabled):not(.focused):not(.today):hover {
+    background-color: #475569 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.range.disabled {
+    color: #475569 !important;
+}
+
+[data-bs-theme="dark"] .datepicker-cell.range.focused {
+    background-color: #475569 !important;
+}
+
+/* Daterangepicker Overrides */
+.daterangepicker .calendar-table td.active,
+.daterangepicker .calendar-table td.active:hover,
+.daterangepicker .calendar-table td.start-date,
+.daterangepicker .calendar-table td.end-date {
+    background-color: var(--main-color) !important;
+    color: #ffffff !important;
+}
+
+.daterangepicker .calendar-table td.in-range {
+    background-color: rgba(253, 95, 0, 0.15) !important;
+    color: var(--main-color) !important;
+}
+
+/* Daterangepicker Dark Mode Overrides */
+[data-bs-theme="dark"] .daterangepicker {
+    background-color: #1e1e24 !important;
+    border: 1px solid #32323a !important;
+    color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker:before {
+    border-bottom-color: #32323a !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker:after {
+    border-bottom-color: #1e1e24 !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker .calendar-table {
+    background-color: #1e1e24 !important;
+    border: 1px solid #32323a !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker .calendar-table td,
+[data-bs-theme="dark"] .daterangepicker .calendar-table th {
+    color: #e2e8f0 !important;
+    background-color: #1e1e24 !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker td.off,
+[data-bs-theme="dark"] .daterangepicker td.off.in-range,
+[data-bs-theme="dark"] .daterangepicker td.off.start-date,
+[data-bs-theme="dark"] .daterangepicker td.off.end-date {
+    background-color: #1e1e24 !important;
+    color: #475569 !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker .calendar-table td.in-range {
+    background-color: rgba(253, 95, 0, 0.15) !important;
+    color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker .calendar-table td.active,
+[data-bs-theme="dark"] .daterangepicker .calendar-table td.active:hover,
+[data-bs-theme="dark"] .daterangepicker .calendar-table td.start-date,
+[data-bs-theme="dark"] .daterangepicker .calendar-table td.end-date {
+    background-color: var(--main-color) !important; /* Theme orange highlight */
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker td.available:hover,
+[data-bs-theme="dark"] .daterangepicker th.available:hover {
+    background-color: #2d2d34 !important;
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker td.disabled,
+[data-bs-theme="dark"] .daterangepicker option.disabled {
+    color: #475569 !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker .ranges li {
+    background-color: #17171a !important;
+    color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker .ranges li:hover {
+    background-color: #2d2d34 !important;
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker .ranges li.active {
+    background-color: var(--main-color) !important; /* Theme orange highlight */
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker .drp-buttons {
+    border-top: 1px solid #32323a !important;
+    background-color: #17171a !important;
+}
+
+[data-bs-theme="dark"] .daterangepicker .drp-selected {
+    color: #94a3b8 !important;
+}
+
+

@@ -5,6 +5,8 @@
 
 @section('pageCss')
     <link href="{{ asset('assets/css/select2/select2.min.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('vendor-assets/libs/vanillajs-datepicker/css/datepicker.min.css') }}" rel="stylesheet"
+        type="text/css" />
 @endsection
 
 @section('content')
@@ -56,15 +58,11 @@
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Technician Name</label>
-                                <input type="text" name="technician_name" class="form-control" placeholder="Optional">
-                            </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Repair Date</label>
-                                <input type="date" name="repair_date" class="form-control" value="{{ date('Y-m-d') }}"
-                                    required>
+                                <input type="text" name="repair_date" class="form-control date-picker" value="{{ date('Y-m-d') }}"
+                                    required readonly style="background-color: var(--bs-body-bg); color: var(--bs-body-color);">
                             </div>
 
                             <div class="d-grid gap-2 mt-4">
@@ -81,6 +79,7 @@
 
 @section('pageScripts')
     <script src="{{ asset('assets/js/select2/select2.min.js') }}"></script>
+    <script src="{{ asset('vendor-assets/libs/vanillajs-datepicker/js/datepicker-full.min.js') }}"></script>
     <script>
         $(document).ready(function() {
             $('#mobile_id').select2({
@@ -109,6 +108,11 @@
 
                     return null;
                 }
+            });
+
+            new Datepicker(document.querySelector('.date-picker'), {
+                autoHide: true,
+                format: 'yyyy-mm-dd',
             });
         });
     </script>

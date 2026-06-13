@@ -380,96 +380,205 @@ class MobileController extends Controller
 		$device = Mobile::with(['brand', 'model', 'purchaseTransaction.customer'])->findOrFail($id);
 		$brands = Brand::whereIn('type', ['device', 'both'])->orderBy('name', 'asc')->get();
 
-		$saleTransaction = null;
-		if ($device->status == 'sold') {
-			$saleTransaction = Transaction::where('mobile_id', $device->id)
-				->where('transaction_type', 'sell')
-				->with('customer')
-				->latest()
-				->first();
+		// Load all records with the same HSN number
+		$devices = Mobile::where('hsn_number', $device->hsn_number)
+			->with(['brand', 'model', 'purchaseTransaction.customer'])
+			->orderBy('id', 'desc')
+			->get();
+
+		// For each device, if it is sold, get its sale transaction
+		foreach ($devices as $d) {
+			$d->saleTransaction = null;
+			if ($d->status == 'sold') {
+				$d->saleTransaction = Transaction::where('mobile_id', $d->id)
+					->where('transaction_type', 'sell')
+					->with('customer')
+					->latest()
+					->first();
+			}
 		}
 
-		return view('device.edit', compact('device', 'brands', 'saleTransaction'));
+		return view('device.edit', compact('device', 'brands', 'devices'));
 	}
 
 
 	public function update(Request $request, $id)
 	{
-		$request->validate([
+		$rules = [
 			'brand_id' => 'required',
 			'model_name' => 'required|string',
 			'storage' => 'required|string',
 			'ram' => 'required|string',
 			'color' => 'required|string',
 			'condition' => 'required|string',
-			'hsn_number' => 'required|string',
-			'buy_price' => 'required|numeric|min:0',
-			'purchase_date' => 'required|date',
-			'supplier_phone' => 'required|string',
-			'supplier_name' => 'required|string',
-		]);
+			'units' => 'required|array',
+			'units.*.id' => 'required|exists:mobiles,id',
+			'units.*.hsn_number' => 'required|string',
+			'units.*.buy_price' => 'required|numeric|min:0',
+			'units.*.purchase_date' => 'required|date',
+			'units.*.supplier_phone' => 'required|string',
+			'units.*.supplier_name' => 'required|string',
+		];
+
+		$request->validate($rules);
 
 		try {
 			DB::beginTransaction();
 
-			$mobile = Mobile::findOrFail($id);
 			$model = MobileModel::firstOrCreate(
 				['brand_id' => $request->brand_id, 'name' => $request->model_name]
 			);
 
-			$mobile->update([
-				'brand_id' => $request->brand_id,
-				'model_id' => $model->id,
-				'hsn_number' => $request->hsn_number,
-				'storage' => $request->storage,
-				'ram' => $request->ram,
-				'color' => $request->color,
-				'battery_health' => $request->battery_health,
-				'condition_type' => Str::lower($request->condition),
-			]);
+			foreach ($request->units as $unitData) {
+				$mobile = Mobile::findOrFail($unitData['id']);
 
-			if ($mobile->status != 'sold') {
-				// Update Purchase Transaction
-				$transaction = $mobile->purchaseTransaction;
-				if ($transaction) {
-					// Update Supplier/Customer
-					$customer = Customer::updateOrCreate(
-						['phone' => $request->supplier_phone],
-						['name' => $request->supplier_name]
+				// Dynamically validate sell details if this unit status is 'sold'
+				if ($mobile->status == 'sold') {
+					$validator = \Validator::make($unitData, [
+						'sell_price' => 'required|numeric|min:0',
+						'sale_date' => 'required|date',
+						'customer_phone' => 'required|string',
+						'customer_name' => 'required|string',
+					]);
+
+					if ($validator->fails()) {
+						throw new Exception("Validation failed for unit " . $unitData['hsn_number'] . ": " . implode(', ', $validator->errors()->all()));
+					}
+				}
+
+				$mobile->update([
+					'brand_id' => $request->brand_id,
+					'model_id' => $model->id,
+					'hsn_number' => $unitData['hsn_number'],
+					'storage' => $request->storage,
+					'ram' => $request->ram,
+					'color' => $request->color,
+					'battery_health' => $request->battery_health,
+					'condition_type' => Str::lower($request->condition),
+				]);
+
+				// 1. Update/Create Purchase Transaction & Invoice
+				$purchaseTransaction = $mobile->purchaseTransaction;
+				if ($purchaseTransaction) {
+					// Update existing supplier details
+					$supplier = Customer::updateOrCreate(
+						['phone' => $unitData['supplier_phone']],
+						['name' => $unitData['supplier_name'], 'address' => $unitData['supplier_address'] ?? '']
 					);
 
-					$transaction->update([
-						'customer_id' => $customer->id,
-						'price' => $request->buy_price,
-						'transaction_date' => $request->purchase_date,
+					$purchaseTransaction->update([
+						'customer_id' => $supplier->id,
+						'price' => $unitData['buy_price'],
+						'transaction_date' => $unitData['purchase_date'],
 					]);
 
 					// Update related invoice if exists
-					if ($transaction->invoice_no) {
-						$invoice = Invoice::where('invoice_no', $transaction->invoice_no)->first();
+					if ($purchaseTransaction->invoice_no) {
+						$invoice = Invoice::where('invoice_no', $purchaseTransaction->invoice_no)->first();
 						if ($invoice) {
 							$invoice->update([
-								'customer_id' => $customer->id,
-								'invoice_date' => $request->purchase_date,
-								'subtotal' => $request->buy_price,
-								'grand_total' => $request->buy_price,
+								'customer_id' => $supplier->id,
+								'invoice_date' => $unitData['purchase_date'],
+								'subtotal' => $unitData['buy_price'],
+								'grand_total' => $unitData['buy_price'],
+								'paid_amount' => $unitData['buy_price'],
 							]);
 
 							// Update invoice item
 							$invoice->items()->where('mobile_id', $mobile->id)->update([
-								'price' => $request->buy_price,
-								'total' => $request->buy_price,
+								'price' => $unitData['buy_price'],
+								'total' => $unitData['buy_price'],
 							]);
+						}
+					}
+				} else {
+					// Create new Purchase Invoice & Transaction if supplier details are filled
+					if ($unitData['supplier_phone'] && $unitData['supplier_name']) {
+						$supplier = Customer::updateOrCreate(
+							['phone' => $unitData['supplier_phone']],
+							['name' => $unitData['supplier_name'], 'address' => $unitData['supplier_address'] ?? '']
+						);
+
+						// Create Invoice (type buy)
+						$invoice = Invoice::create([
+							'customer_id' => $supplier->id,
+							'invoice_no' => Traits::getInvoiceNumber(),
+							'invoice_date' => $unitData['purchase_date'],
+							'invoice_type' => 'buy',
+							'subtotal' => $unitData['buy_price'],
+							'grand_total' => $unitData['buy_price'],
+							'paid_amount' => $unitData['buy_price'],
+							'status' => 'paid',
+						]);
+
+						// Create Transaction
+						$purchaseTransaction = Transaction::create([
+							'mobile_id' => $mobile->id,
+							'customer_id' => $supplier->id,
+							'transaction_type' => 'buy',
+							'price' => $unitData['buy_price'],
+							'transaction_date' => $unitData['purchase_date'],
+							'invoice_no' => $invoice->invoice_no,
+						]);
+
+						// Create Invoice Item
+						InvoiceItem::create([
+							'invoice_id' => $invoice->id,
+							'mobile_id' => $mobile->id,
+							'transaction_id' => $purchaseTransaction->id,
+							'qty' => 1,
+							'price' => $unitData['buy_price'],
+							'total' => $unitData['buy_price'],
+						]);
+					}
+				}
+
+				// 2. Update Sale Transaction & Invoice (only if mobile is sold)
+				if ($mobile->status == 'sold') {
+					$saleTransaction = Transaction::where('mobile_id', $mobile->id)
+						->where('transaction_type', 'sell')
+						->latest()
+						->first();
+
+					if ($saleTransaction) {
+						$customer = Customer::updateOrCreate(
+							['phone' => $unitData['customer_phone']],
+							['name' => $unitData['customer_name'], 'address' => $unitData['customer_address'] ?? '']
+						);
+
+						$saleTransaction->update([
+							'customer_id' => $customer->id,
+							'price' => $unitData['sell_price'],
+							'transaction_date' => $unitData['sale_date'],
+						]);
+
+						// Update related invoice if exists
+						if ($saleTransaction->invoice_no) {
+							$invoice = Invoice::where('invoice_no', $saleTransaction->invoice_no)->first();
+							if ($invoice) {
+								$invoice->update([
+									'customer_id' => $customer->id,
+									'invoice_date' => $unitData['sale_date'],
+								]);
+
+								// Update invoice item
+								$invoice->items()->where('mobile_id', $mobile->id)->update([
+									'price' => $unitData['sell_price'],
+									'total' => $unitData['sell_price'],
+								]);
+
+								$invoice->recalculateTotals();
+							}
 						}
 					}
 				}
 			}
 
 			DB::commit();
-			return redirect()->route('mobiles.index')->with('success', 'Mobile updated successfully.');
+			return redirect()->route('mobiles.index')->with('success', 'Mobile units updated successfully.');
 		} catch (Exception $e) {
 			DB::rollBack();
-			return back()->with('error', 'Error updating mobile: ' . $e->getMessage())->withInput();
+			return back()->with('error', 'Error updating mobile units: ' . $e->getMessage())->withInput();
 		}
 	}
 
@@ -503,6 +612,24 @@ class MobileController extends Controller
 		]);
 	}
 
+	public function searchCustomers(Request $request)
+	{
+		$q = $request->input('q', '');
+		$customers = Customer::where('phone', 'like', "%{$q}%")
+			->orWhere('name', 'like', "%{$q}%")
+			->orderBy('phone')
+			->limit(20)
+			->get(['id', 'name', 'phone']);
+
+		$results = $customers->map(fn($c) => [
+			'id'   => $c->phone,
+			'text' => $c->phone . ($c->name ? ' — ' . $c->name : ''),
+			'name' => $c->name,
+		]);
+
+		return response()->json(['results' => $results]);
+	}
+
 	public function buyback($invoice_item_id)
 	{
 		$invoiceItem = InvoiceItem::with(['invoice.customer', 'mobile.brand', 'mobile.model'])->findOrFail($invoice_item_id);
@@ -513,8 +640,13 @@ class MobileController extends Controller
 	{
 		$request->validate([
 			'invoice_item_id' => 'required',
-			'buyback_price' => 'required|numeric|min:0',
-			'buyback_date' => 'required|date',
+			'buyback_price'   => 'required|numeric|min:0',
+			'buyback_date'    => 'required|date',
+			'ram'             => 'nullable|string',
+			'storage'         => 'nullable|string',
+			'customer_phone'  => 'required_if:new_customer,1|nullable|string',
+			'customer_name'   => 'nullable|string',
+			'customer_address' => 'nullable|string',
 		]);
 
 		try {
@@ -532,15 +664,24 @@ class MobileController extends Controller
 				'brand_id' => $oldMobile->brand_id,
 				'model_id' => $oldMobile->model_id,
 				'hsn_number' => $oldMobile->hsn_number,
-				'storage' => $oldMobile->storage,
-				'ram' => $oldMobile->ram,
+				'storage' => $request->storage ?: $oldMobile->storage,
+				'ram' => $request->ram ?: $oldMobile->ram,
 				'color' => $oldMobile->color,
 				'battery_health' => $request->battery_health,
 				'condition_type' => 'used',
 				'status' => 'in_stock',
 			]);
 
-			$customer = $oldItem->invoice->customer;
+			// Use new/different customer if checkbox was checked
+			if ($request->boolean('new_customer') && $request->filled('customer_phone')) {
+				$customer = Customer::updateOrCreate(
+					['phone'   => $request->customer_phone],
+					['name'    => $request->customer_name ?? '',
+					 'address' => $request->customer_address ?? '']
+				);
+			} else {
+				$customer = $oldItem->invoice->customer;
+			}
 
 			$invoiceDate = $request->buyback_date ?: date('Y-m-d');
 

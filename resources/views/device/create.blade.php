@@ -45,15 +45,15 @@
                                         placeholder="e.g. iPhone 13" required>
                                 </div>
                                 <div class="col-md-2 mb-3">
+                                    <label for="ram" class="form-label">RAM<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="ram" name="ram"
+                                        placeholder="8GB" required>
+                                </div>
+                                <div class="col-md-2 mb-3">
                                     <label for="storage" class="form-label">Storage<span
                                             class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="storage" name="storage"
                                         placeholder="128GB" required>
-                                </div>
-                                <div class="col-md-2 mb-3">
-                                    <label for="ram" class="form-label">RAM<span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="ram" name="ram"
-                                        placeholder="8GB" required>
                                 </div>
                                 <div class="col-md-3 mb-3">
                                     <label for="color" class="form-label">Color<span class="text-danger">*</span></label>

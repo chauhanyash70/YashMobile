@@ -1,0 +1,188 @@
+/* Custom premium dark mode styles for Yash Mobile */
+
+[data-bs-theme="dark"] {
+    /* Main body background refinement */
+    --bs-body-bg: #0b0d10 !important;
+}
+
+/* Sidebar and Topbar premium dark overrides */
+[data-bs-theme="dark"] .startbar,
+[data-bs-theme="dark"] .startbar .brand,
+[data-bs-theme="dark"] .topbar,
+[data-bs-theme="dark"] .topbar-custom {
+    background-color: #111216 !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Card layout dark overrides */
+[data-bs-theme="dark"] .card {
+    background-color: #17181c !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-bs-theme="dark"] .card-header {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    color: #f1f5f9 !important;
+}
+
+[data-bs-theme="dark"] .card-footer {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Inset boxes / subtle background areas (Phase 1, Phase 2, etc.) */
+[data-bs-theme="dark"] .bg-light-subtle {
+    background-color: #101114 !important;
+    color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .bg-light {
+    background-color: #101114 !important;
+    color: #e2e8f0 !important;
+}
+
+/* Inset details box borders and dashed borders */
+[data-bs-theme="dark"] .border-light {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-bs-theme="dark"] .border-primary-subtle {
+    border-color: rgba(253, 95, 0, 0.2) !important;
+}
+
+[data-bs-theme="dark"] .border-success-subtle {
+    border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-bs-theme="dark"] .border-danger-subtle {
+    border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+[data-bs-theme="dark"] .border-warning-subtle {
+    border-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+/* Text visibility overrides */
+[data-bs-theme="dark"] .text-dark {
+    color: #f1f5f9 !important;
+}
+
+[data-bs-theme="dark"] .text-muted {
+    color: #94a3b8 !important;
+}
+
+/* Form inputs styling */
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select,
+[data-bs-theme="dark"] .input-group-text {
+    background-color: #111215 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #f8fafc !important;
+}
+
+[data-bs-theme="dark"] .form-control::placeholder {
+    color: #64748b !important;
+}
+
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus {
+    border-color: #fd5f00 !important;
+    box-shadow: 0 0 0 0.25rem rgba(253, 95, 0, 0.15) !important;
+}
+
+/* Select2 drop down premium overrides */
+[data-bs-theme="dark"] .select2-container--default .select2-selection--single {
+    background-color: #111215 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #f8fafc !important;
+    height: 38px !important;
+}
+
+[data-bs-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #f8fafc !important;
+    line-height: 28px !important;
+}
+
+[data-bs-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: #94a3b8 transparent transparent transparent !important;
+}
+
+[data-bs-theme="dark"] .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+    border-color: transparent transparent #94a3b8 transparent !important;
+}
+
+[data-bs-theme="dark"] .select2-dropdown {
+    background-color: #17181c !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #f8fafc !important;
+}
+
+[data-bs-theme="dark"] .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #fd5f00 !important;
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .select2-container--default .select2-results__option[aria-selected="true"] {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .select2-search--dropdown {
+    background-color: #17181c !important;
+}
+
+[data-bs-theme="dark"] .select2-search--dropdown .select2-search__field {
+    background-color: #111215 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #f8fafc !important;
+}
+
+/* File Drop Zone overrides */
+[data-bs-theme="dark"] #drop-area-document,
+[data-bs-theme="dark"] .drop-area {
+    background-color: #101114 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-bs-theme="dark"] #drop-area-document:hover,
+[data-bs-theme="dark"] .drop-area:hover,
+[data-bs-theme="dark"] #drop-area-document.hover,
+[data-bs-theme="dark"] .drop-area.hover {
+    background-color: #13141a !important;
+    border-color: #fd5f00 !important;
+}
+
+/* International Tel Input dropdown and highlights */
+[data-bs-theme="dark"] .iti__country-list {
+    background-color: #17181c !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #f8fafc !important;
+}
+
+[data-bs-theme="dark"] .iti__search-input {
+    background-color: #111215 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #f8fafc !important;
+}
+
+[data-bs-theme="dark"] .iti__country:hover, 
+[data-bs-theme="dark"] .iti__country.iti__highlight {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* SweetAlert overrides for dark mode consistency */
+[data-bs-theme="dark"] .swal2-popup {
+    background-color: #17181c !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-bs-theme="dark"] .swal2-title {
+    color: #f8fafc !important;
+}
+
+[data-bs-theme="dark"] .swal2-content {
+    color: #94a3b8 !important;
+}

@@ -105,6 +105,12 @@ class CustomerController extends Controller
 
 	public function store(Request $request)
 	{
+		if ($request->has('phone')) {
+			$request->merge([
+				'phone' => Customer::standardizePhoneNumber($request->phone)
+			]);
+		}
+
 		$request->validate([
 			'name' => 'required',
 			'phone' => 'nullable|unique:customers,phone',
@@ -154,6 +160,12 @@ class CustomerController extends Controller
 
 	public function update(Request $request, Customer $customer)
 	{
+		if ($request->has('phone')) {
+			$request->merge([
+				'phone' => Customer::standardizePhoneNumber($request->phone)
+			]);
+		}
+
 		$request->validate([
 			'name' => 'required',
 			'phone' => 'nullable|unique:customers,phone,' . $customer->id,

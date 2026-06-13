@@ -16,6 +16,30 @@
         .buyback-header {
             background: rgba(13, 110, 253, 0.05);
         }
+
+        /* ---- New Customer Panel ---- */
+        #newCustomerPanel {
+            display: none;
+            animation: fadeSlideIn 0.25s ease;
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Select2 dark-mode friendly override */
+        .select2-container--default .select2-selection--single {
+            height: 38px;
+            border-radius: 6px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 36px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+        }
+        .select2-container { width: 100% !important; }
     </style>
 @endsection
 
@@ -50,12 +74,12 @@
                                     <input type="text" class="form-control bg-light" value="{{ $mobile->model->name ?? 'N/A' }}" readonly>
                                 </div>
                                 <div class="col-md-3 mb-3">
-                                    <label class="form-label">Storage</label>
-                                    <input type="text" class="form-control bg-light" value="{{ $mobile->storage }}" readonly>
+                                    <label class="form-label">RAM</label>
+                                    <input type="text" class="form-control" name="ram" value="{{ $mobile->ram }}">
                                 </div>
                                 <div class="col-md-3 mb-3">
-                                    <label class="form-label">RAM</label>
-                                    <input type="text" class="form-control bg-light" value="{{ $mobile->ram }}" readonly>
+                                    <label class="form-label">Storage</label>
+                                    <input type="text" class="form-control" name="storage" value="{{ $mobile->storage }}">
                                 </div>
                                 <div class="col-md-3 mb-3">
                                     <label class="form-label">Color</label>
@@ -98,19 +122,60 @@
                                         value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" required>
                                 </div>
 
-                                <div class="col-12 mt-4">
-                                    <h6 class="fw-bold">Customer Information (Selling to Store)</h6>
+                                {{-- ===== Customer Information ===== --}}
+                                <div class="col-12 mt-4 d-flex align-items-center gap-3">
+                                    <h6 class="fw-bold mb-0">Customer Information (Selling to Store)</h6>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" role="switch"
+                                            id="newCustomerToggle" name="new_customer" value="1">
+                                        <label class="form-check-label text-warning fw-semibold" for="newCustomerToggle">
+                                            Different / New Customer
+                                        </label>
+                                    </div>
                                 </div>
 
-                                <div class="col-md-4">
-                                    <label class="form-label small text-muted">Customer Phone</label>
-                                    <input type="text" class="form-control bg-light"
-                                        value="{{ $customer->phone ?? 'N/A' }}" readonly>
+                                {{-- Original customer (shown when checkbox is OFF) --}}
+                                <div id="originalCustomerPanel" class="col-12">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label small text-muted">Customer Phone</label>
+                                            <input type="text" class="form-control bg-light"
+                                                value="{{ $customer->phone ?? 'N/A' }}" readonly>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small text-muted">Customer Name</label>
+                                            <input type="text" class="form-control bg-light"
+                                                value="{{ $customer->name ?? 'N/A' }}" readonly>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small text-muted">Address</label>
+                                            <input type="text" class="form-control bg-light"
+                                                value="{{ $customer->address ?? 'N/A' }}" readonly>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-8">
-                                    <label class="form-label small text-muted">Customer Name</label>
-                                    <input type="text" class="form-control bg-light"
-                                        value="{{ $customer->name ?? 'N/A' }}" readonly>
+
+                                {{-- New / different customer (shown when checkbox is ON) --}}
+                                <div id="newCustomerPanel" class="col-12">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label small text-muted">
+                                                Mobile Number <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="text" id="newCustomerPhone" name="customer_phone"
+                                                class="form-control" placeholder="Enter mobile number">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small text-muted">Customer Name</label>
+                                            <input type="text" id="newCustomerName" name="customer_name"
+                                                class="form-control" placeholder="Auto-filled or enter manually">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small text-muted">Address</label>
+                                            <input type="text" id="newCustomerAddress" name="customer_address"
+                                                class="form-control" placeholder="Auto-filled or enter manually">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -130,10 +195,61 @@
 @section('pageScripts')
     <script src="{{ asset('vendor-assets/libs/vanillajs-datepicker/js/datepicker-full.min.js') }}"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
+
+            // ---- Datepicker ----
             new Datepicker(document.querySelector('.date-picker'), {
                 autoHide: true,
                 format: 'yyyy-mm-dd',
+            });
+
+            // ---- New-customer toggle ----
+            const $toggle        = $('#newCustomerToggle');
+            const $original      = $('#originalCustomerPanel');
+            const $newPanel      = $('#newCustomerPanel');
+            const $phoneInput    = $('#newCustomerPhone');
+            const $nameInput     = $('#newCustomerName');
+            const $addressInput  = $('#newCustomerAddress');
+
+            $toggle.on('change', function () {
+                if (this.checked) {
+                    $original.hide();
+                    $newPanel.show();
+                    $phoneInput.focus();
+                } else {
+                    $original.show();
+                    $newPanel.hide();
+                    $phoneInput.val('');
+                    $nameInput.val('');
+                    $addressInput.val('');
+                }
+            });
+
+            // ---- Phone lookup (same as invoice create) ----
+            let lookupTimer = null;
+
+            $phoneInput.on('input', function () {
+                clearTimeout(lookupTimer);
+                const phone = $(this).val().trim();
+
+                if (phone.length < 6) return;
+
+                lookupTimer = setTimeout(function () {
+                    $.ajax({
+                        url: '{{ route("invoice.getCustomer") }}',
+                        method: 'POST',
+                        data: { _token: '{{ csrf_token() }}', phone: phone },
+                        success: function (res) {
+                            if (res.status && res.customer) {
+                                $nameInput.val(res.customer.name);
+                                $addressInput.val(res.customer.address ?? '');
+                            } else {
+                                $nameInput.val('');
+                                $addressInput.val('');
+                            }
+                        },
+                    });
+                }, 400);
             });
         });
     </script>

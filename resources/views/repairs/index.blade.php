@@ -39,7 +39,6 @@
                                     <tr>
                                         <th>Device</th>
                                         <th>Issue</th>
-                                        <th>Technician</th>
                                         <th>Cost</th>
                                         <th>Status</th>
                                         <th>Date</th>
@@ -49,11 +48,6 @@
                                 <tbody>
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
-                    <div class="card-footer border-0 py-3">
-                        <div class="d-flex justify-content-center">
-                            {{ $repairs->appends(request()->query())->links() }}
                         </div>
                     </div>
                 </div>
@@ -73,12 +67,14 @@
                     url: "{{ route('getRepairData') }}",
                     type: "POST",
                     data: {
-                        _token: "{{ csrf_token() }}"
+                        _token: "{{ csrf_token() }}",
+                        mobile_id: "{{ request('mobile_id') }}"
                     },
                     headers: {
                         'X-CSRF-TOKEN': "{{ csrf_token() }}"
                     }
                 },
+                order: [4, 'desc'],
                 columns: [{
                         data: 'device',
                         name: 'device',
@@ -88,10 +84,6 @@
                     {
                         data: 'issue',
                         name: 'issue'
-                    },
-                    {
-                        data: 'technician',
-                        name: 'technician'
                     },
                     {
                         data: 'cost',

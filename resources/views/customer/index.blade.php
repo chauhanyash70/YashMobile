@@ -30,7 +30,7 @@
 								<thead class="">
 									<tr>
 										<th>#</th>
-										<th class="text-start">Name</th>
+										<th class="text-start all">Name</th>
 										<th>Phone</th>
 										<th>address</th>
 										<th>Created At</th>
@@ -86,7 +86,7 @@
 				},
 				{
 					data: "name",
-					sClass: "text-start",
+					sClass: "text-start all",
 				},
 				{
 					data: "phone",
@@ -99,7 +99,7 @@
 				},
 				{
 					data: "actions",
-					sClass: "text-end",
+					sClass: "text-end all",
 				},
 			],
 			columnDefs: [{
@@ -113,6 +113,7 @@
 				},
                 {
                     targets: 1,
+					responsivePriority: 1,
                     render: function(data, type, full, meta) {
                         return `
                             <div class="d-flex align-items-center">
@@ -123,11 +124,9 @@
                     }
                 },
 				{
-					width: "150px",
 					targets: -1,
 					title: "Actions",
 					orderable: false,
-					responsivePriority: -1,
 					render: function (data, type, full, meta) {
 						return `
 							<a href="${full.details_url}" class="btn btn-sm btn-outline-secondary">

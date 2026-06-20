@@ -96,11 +96,42 @@
             size: auto;
             margin: 10mm 15mm 10mm 15mm;
         }
-        body {
+        :root, [data-bs-theme="dark"], [data-bs-theme="dark"] body {
+            --bs-body-bg: #fff !important;
+            --bs-body-color: #000 !important;
+            --bs-card-bg: #fff !important;
+            --bs-card-color: #000 !important;
+            --bs-tertiary-bg: #fff !important;
+            --bs-border-color: #dee2e6 !important;
+            --bs-light-bg: #f8f9fa !important;
+            --bs-light-color: #000 !important;
+            --bs-primary: #000 !important;
+        }
+        *, *::before, *::after,
+        html[data-bs-theme="dark"] *,
+        html[data-bs-theme="dark"] *::before,
+        html[data-bs-theme="dark"] *::after {
+            box-shadow: none !important;
+            -webkit-box-shadow: none !important;
+            text-shadow: none !important;
+        }
+        body, html, .page-wrapper, .page-content, .container-xxl, .card, .card-body, table, thead, tbody, tr, td, th,
+        html[data-bs-theme="dark"] body,
+        html[data-bs-theme="dark"] html,
+        html[data-bs-theme="dark"] .page-wrapper,
+        html[data-bs-theme="dark"] .page-content,
+        html[data-bs-theme="dark"] .container-xxl,
+        html[data-bs-theme="dark"] .card,
+        html[data-bs-theme="dark"] .card-body,
+        html[data-bs-theme="dark"] table,
+        html[data-bs-theme="dark"] thead,
+        html[data-bs-theme="dark"] tbody,
+        html[data-bs-theme="dark"] tr,
+        html[data-bs-theme="dark"] td,
+        html[data-bs-theme="dark"] th {
             background-color: #fff !important;
+            background: #fff !important;
             color: #000 !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
         }
         .startbar, .startbar-overlay, .topbar, .d-print-none, header, footer, .page-content-header {
             display: none !important;
@@ -116,16 +147,25 @@
             padding: 0 0 110px 0 !important;
             min-height: auto !important;
         }
-        .card {
+        .card, 
+        html[data-bs-theme="dark"] body .card,
+        html[data-bs-theme="dark"] body .shadow-sm,
+        html[data-bs-theme="dark"] body .shadow {
             border: none !important;
             box-shadow: none !important;
+            -webkit-box-shadow: none !important;
             background: transparent !important;
+            background-color: transparent !important;
         }
         .card-header {
             display: none !important;
         }
-        .card-body {
+        .card-body, 
+        html[data-bs-theme="dark"] body .card-body {
             padding: 0 !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            -webkit-box-shadow: none !important;
         }
         .container-xxl {
             max-width: 100% !important;
@@ -159,10 +199,13 @@
         #denom-table {
             border-collapse: collapse !important;
             width: 100% !important;
+            background-color: #fff !important;
         }
         #denom-table th, #denom-table td {
             padding: 8px 12px !important;
             border: 1px solid #dee2e6 !important;
+            background-color: #fff !important;
+            color: #000 !important;
         }
         #denom-table th {
             background-color: #f8f9fa !important;
@@ -185,10 +228,11 @@
             display: block !important;
             margin-bottom: 20px;
             text-align: center;
+            background-color: #fff !important;
         }
         .print-header p {
             margin: 0;
-            color: #333;
+            color: #333 !important;
             font-size: 13px;
         }
         .print-footer {
@@ -199,12 +243,18 @@
             right: 0 !important;
             margin: 0 !important;
             padding-bottom: 10px !important;
+            background-color: #fff !important;
         }
-        .total-box {
+        .print-footer p, .print-footer div {
+            color: #000 !important;
+        }
+        .total-box, html[data-bs-theme="dark"] body .total-box {
             background: transparent !important;
+            background-color: transparent !important;
             color: #000 !important;
             border: 2px solid #000 !important;
             box-shadow: none !important;
+            -webkit-box-shadow: none !important;
             padding: 12px !important;
             border-radius: 8px !important;
         }
@@ -218,13 +268,22 @@
             font-weight: 700 !important;
             font-size: 12px !important;
         }
-        .words-box {
+        .words-box, html[data-bs-theme="dark"] body .words-box {
             border: 1px dashed #000 !important;
             background-color: transparent !important;
             color: #000 !important;
             font-size: 13px !important;
             padding: 10px !important;
             border-radius: 6px !important;
+            box-shadow: none !important;
+            -webkit-box-shadow: none !important;
+        }
+        .print-notes-val, html[data-bs-theme="dark"] body .print-notes-val {
+            background-color: #f8f9fa !important;
+            color: #000 !important;
+            border: 1px solid #dee2e6 !important;
+            box-shadow: none !important;
+            -webkit-box-shadow: none !important;
         }
         .subtotal-display {
             text-align: right !important;
@@ -246,11 +305,15 @@
             z-index: -1000 !important;
             pointer-events: none !important;
             opacity: 0.05 !important;
+            background-color: transparent !important;
+            background: transparent !important;
         }
         .print-watermark img {
             width: 100% !important;
             height: auto !important;
             max-width: 100% !important;
+            background-color: transparent !important;
+            background: transparent !important;
         }
     }
 
@@ -432,7 +495,7 @@
 
         <!-- Summary Panel Section -->
         <div class="col-lg-4">
-            <div class="card shadow-sm border-0 sticky-top" style="top: 85px; z-index: 10;">
+            <div class="card border-0 sticky-top" style="top: 85px; z-index: 10;">
                 <div class="card-body p-4">
                     <!-- Grand Total Box -->
                     <div class="total-box text-center mb-4">

@@ -109,6 +109,14 @@
                             <span>Upload</span>
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ Route::is('cash-counter.index') ? 'active' : '' }}"
+                            href="{{ route('cash-counter.index') }}">
+                            <i class="iconoir-coins menu-icon"></i>
+                            <span>Cash Counter</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

@@ -93,4 +93,6 @@ Route::group(['middleware' => ['auth']], function () {
     Route::resource('transactions', \App\Http\Controllers\TransactionController::class);
     Route::post('/transactions/get-data', [\App\Http\Controllers\TransactionController::class, 'getData'])->name('transactions.getData');
 
+    /* Cash Counter Route */
+    Route::get('/cash-counter', [\App\Http\Controllers\CashCountController::class, 'index'])->name('cash-counter.index');
 });

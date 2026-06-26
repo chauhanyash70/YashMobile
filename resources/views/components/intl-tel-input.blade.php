@@ -132,9 +132,23 @@
                 // Initial load
                 initIntlTelInputs();
 
-                // MutationObserver to auto-initialize dynamically added inputs (e.g. from Repeaters)
+                // Function to move invalid-feedback outside of .iti container
+                function adjustErrorPlacements() {
+                    document.querySelectorAll('.iti > .invalid-feedback, .iti > .error, .iti > label.error, .iti > [id$="-error"]').forEach(function(error) {
+                        const iti = error.parentNode;
+                        if (iti && iti.parentNode) {
+                            iti.parentNode.insertBefore(error, iti.nextSibling);
+                        }
+                    });
+                }
+
+                // Run initially
+                adjustErrorPlacements();
+
+                // MutationObserver to auto-initialize dynamically added inputs (e.g. from Repeaters) and fix error placements
                 const observer = new MutationObserver(function(mutations) {
                     initIntlTelInputs();
+                    adjustErrorPlacements();
                 });
                 observer.observe(document.body, { childList: true, subtree: true });
 

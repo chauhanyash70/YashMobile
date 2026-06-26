@@ -368,7 +368,7 @@
                             </thead>
                             <tbody>
                                 <!-- Notes -->
-                                <tr class="denom-row zero-count" data-value="2000">
+                                {{-- <tr class="denom-row zero-count" data-value="2000">
                                     <td class="ps-4">
                                         <span class="denom-badge badge-2000">₹ 2000</span>
                                     </td>
@@ -379,7 +379,7 @@
                                     </td>
                                     <td class="text-muted text-center fs-14 d-print-none">=</td>
                                     <td class="pe-4 subtotal-display text-primary">₹ 0</td>
-                                </tr>
+                                </tr> --}}
                                 <tr class="denom-row zero-count" data-value="500">
                                     <td class="ps-4">
                                         <span class="denom-badge badge-500">₹ 500</span>

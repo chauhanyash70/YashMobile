@@ -564,10 +564,14 @@ class InvoiceController extends Controller
             // 1. Revert old items status/stock
             foreach ($invoice->items as $item) {
                 if ($item->mobile) {
-                    $item->mobile->update(['status' => 'in_stock']);
+                    $item->mobile->update(['status' => $invoice->invoice_type === 'buy' ? 'sold' : 'in_stock']);
                 }
                 if ($item->accessory) {
-                    $item->accessory->increment('stock', $item->qty ?? 1);
+                    if ($invoice->invoice_type === 'buy') {
+                        $item->accessory->decrement('stock', $item->qty ?? 1);
+                    } else {
+                        $item->accessory->increment('stock', $item->qty ?? 1);
+                    }
                 }
             }
 
@@ -592,6 +596,7 @@ class InvoiceController extends Controller
                 $price = (float) ($item['price'] ?? 0);
                 $discount = (float) ($item['discount'] ?? 0);
                 $lineTotal = ($price * $qty) - $discount;
+                $buyPrice = (float) ($item['buy_price'] ?? 0);
 
                 if (Str::startsWith($item['product_id'] ?? '', 'mobile_')) {
                     $mobileId = str_replace('mobile_', '', $item['product_id']);
@@ -720,7 +725,7 @@ class InvoiceController extends Controller
                     $transaction = Transaction::create([
                         'mobile_id' => $mobile->id,
                         'customer_id' => $customer->id,
-                        'transaction_type' => 'sell',
+                        'transaction_type' => $invoice->invoice_type === 'buy' ? 'buy' : 'sell',
                         'price' => $it['total'],
                         'transaction_date' => $invoice->invoice_date,
                         'invoice_no' => $invoice->invoice_no,
@@ -737,7 +742,7 @@ class InvoiceController extends Controller
                         'total' => $it['total'],
                     ]);
 
-                    $mobile->update(['status' => 'sold']);
+                    $mobile->update(['status' => $invoice->invoice_type === 'buy' ? 'in_stock' : 'sold']);
                 } elseif ($it['type'] == 'accessory') {
                     $accessory = $it['item'];
                     $qty = $it['qty'] ?? 1;
@@ -745,7 +750,7 @@ class InvoiceController extends Controller
                     $transaction = Transaction::create([
                         'accessory_id' => $accessory->id,
                         'customer_id' => $customer->id,
-                        'transaction_type' => 'sell',
+                        'transaction_type' => $invoice->invoice_type === 'buy' ? 'buy' : 'sell',
                         'price' => $it['total'],
                         'transaction_date' => $invoice->invoice_date,
                         'invoice_no' => $invoice->invoice_no,
@@ -762,7 +767,11 @@ class InvoiceController extends Controller
                         'total' => $it['total'],
                     ]);
 
-                    $accessory->decrement('stock', $qty);
+                    if ($invoice->invoice_type === 'buy') {
+                        $accessory->increment('stock', $qty);
+                    } else {
+                        $accessory->decrement('stock', $qty);
+                    }
                 }
             }
 

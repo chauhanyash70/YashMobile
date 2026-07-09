@@ -122,21 +122,30 @@ class CustomerController extends Controller
 		$data = $request->all();
 		$data['user_id'] = auth()->id();
 
+		// Create customer first (excluding files)
+		unset($data['profile_image']);
+		unset($data['customer_document']);
+		$customer = Customer::create($data);
+
+		$updates = [];
+
 		// Handle Profile Image
 		if ($request->hasFile('profile_image')) {
-			$data['profile_image'] = Traits::uploadFile($request->file('profile_image'), 'customers/profiles');
+			$updates['profile_image'] = Traits::uploadFile($request->file('profile_image'), 'customers/' . $customer->id . '/profile');
 		}
 
 		// Handle Documents
 		if ($request->hasFile('customer_document')) {
 			$documents = [];
 			foreach ($request->file('customer_document') as $file) {
-				$documents[] = Traits::uploadFile($file, 'customers/documents');
+				$documents[] = Traits::uploadFile($file, 'customers/' . $customer->id . '/documents');
 			}
-			$data['documents'] = $documents;
+			$updates['documents'] = $documents;
 		}
 
-		Customer::create($data);
+		if (!empty($updates)) {
+			$customer->update($updates);
+		}
 
 		return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
 	}
@@ -178,15 +187,26 @@ class CustomerController extends Controller
 
 		// Handle Profile Image
 		if ($request->hasFile('profile_image')) {
-			// Optional: delete old profile if needed
-			$data['profile_image'] = Traits::uploadFile($request->file('profile_image'), 'customers/profiles');
+			$data['profile_image'] = Traits::uploadFile($request->file('profile_image'), 'customers/' . $customer->id . '/profile');
+		}
+
+		// Handle Deleted Documents
+		$documents = $customer->documents ?? [];
+		if ($request->has('deleted_documents')) {
+			foreach ($request->deleted_documents as $deletedDoc) {
+				if (($key = array_search($deletedDoc, $documents)) !== false) {
+					unset($documents[$key]);
+					Traits::removeFile($deletedDoc);
+				}
+			}
+			$documents = array_values($documents);
+			$data['documents'] = $documents;
 		}
 
 		// Handle Documents
 		if ($request->hasFile('customer_document')) {
-			$documents = $customer->documents ?? [];
 			foreach ($request->file('customer_document') as $file) {
-				$documents[] = Traits::uploadFile($file, 'customers/documents');
+				$documents[] = Traits::uploadFile($file, 'customers/' . $customer->id . '/documents');
 			}
 			$data['documents'] = $documents;
 		}

@@ -191,19 +191,52 @@
 
 			function appendToGallery(src, file) {
 				const wrapper = document.createElement('div');
-				wrapper.className = 'img-wrapper';
+				wrapper.className = 'img-wrapper border rounded overflow-hidden position-relative shadow-sm hover-scale';
+				wrapper.style.width = '100px';
+				wrapper.style.height = '100px';
+				wrapper.style.display = 'inline-block';
+				wrapper.style.margin = '5px';
+
+				// Create anchor element for Fancybox
+				const link = document.createElement('a');
+				link.href = src;
+				link.setAttribute('data-fancybox', 'customer-create-docs');
+				if (file && file.name) {
+					link.setAttribute('data-caption', file.name);
+				}
 
 				const img = document.createElement('img');
+				img.className = 'w-100 h-100 object-fit-cover';
 				if (file.type.startsWith('image/')) {
 					img.src = src;
+				} else if (file.type === 'application/pdf') {
+					link.setAttribute('data-type', 'pdf');
+					const pdfContainer = document.createElement('div');
+					pdfContainer.className = 'd-flex flex-column align-items-center justify-content-center bg-danger-subtle text-danger w-100 h-100';
+					pdfContainer.innerHTML = '<i class="far fa-file-pdf fa-2x mb-1"></i><span class="fs-10 text-uppercase fw-semibold">PDF</span>';
+					link.appendChild(pdfContainer);
 				} else {
-					img.src = "{{ asset('assets/images/no-photo.jpg') }}"; // Or a generic file icon
+					const fileContainer = document.createElement('div');
+					fileContainer.className = 'd-flex flex-column align-items-center justify-content-center bg-secondary-subtle text-secondary w-100 h-100';
+					fileContainer.innerHTML = '<i class="fas fa-file fa-2x mb-1"></i><span class="fs-10 text-uppercase fw-semibold">FILE</span>';
+					link.appendChild(fileContainer);
+				}
+
+				if (!link.hasChildNodes()) {
+					link.appendChild(img);
 				}
 
 				const removeBtn = document.createElement('button');
-				removeBtn.innerText = '×';
-				removeBtn.className = 'img-remove';
 				removeBtn.type = 'button';
+				removeBtn.className = 'btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-1 d-flex align-items-center justify-content-center';
+				removeBtn.style.zIndex = '10';
+				removeBtn.style.width = '22px';
+				removeBtn.style.height = '22px';
+				removeBtn.style.padding = '0';
+				removeBtn.style.border = 'none';
+				removeBtn.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
+				removeBtn.innerHTML = '<i class="fas fa-times" style="font-size: 10px; color: white;"></i>';
+
 				removeBtn.addEventListener('click', (e) => {
 					e.stopPropagation();
 					e.preventDefault();
@@ -212,9 +245,32 @@
 					syncFormInput();
 				});
 
-				wrapper.appendChild(img);
 				wrapper.appendChild(removeBtn);
+				wrapper.appendChild(link);
 				gallery.appendChild(wrapper);
+
+				// Rebind Fancybox
+				if (typeof Fancybox !== 'undefined') {
+					Fancybox.unbind('[data-fancybox="customer-create-docs"]');
+					Fancybox.bind('[data-fancybox="customer-create-docs"]', {
+						Compact: false,
+						Idle: false,
+						Animated: true,
+						dragToClose: true,
+						Toolbar: {
+							display: {
+								left: ["infobar"],
+								middle: [],
+								right: ["slideshow", "download", "thumbs", "close"],
+							},
+						},
+						Html: {
+							pdf: {
+								type: "pdf"
+							}
+						}
+					});
+				}
 			}
 
 			function syncFormInput() {
@@ -242,19 +298,38 @@
 			});
 			existingImages.forEach((data) => {
 				const wrapper = document.createElement('div');
-				wrapper.className = 'img-wrapper existing-image-' + data.id;
+				wrapper.className = 'img-wrapper border rounded overflow-hidden position-relative shadow-sm hover-scale existing-image-' + data.id;
+				wrapper.style.width = '100px';
+				wrapper.style.height = '100px';
+				wrapper.style.display = 'inline-block';
+				wrapper.style.margin = '5px';
 
-				const img = document.createElement('img');
-				img.src = data.image ? storageUrl + data.image :
+				const imageUrl = data.image ? storageUrl + data.image :
 					data.document ? storageUrl + data.document : '#';
 
+				const link = document.createElement('a');
+				link.href = imageUrl;
+				link.setAttribute('data-fancybox', 'customer-create-docs');
+
+				const img = document.createElement('img');
+				img.className = 'w-100 h-100 object-fit-cover';
+				img.src = imageUrl;
+				link.appendChild(img);
+
 				const removeBtn = document.createElement('button');
-				removeBtn.innerText = '×';
-				removeBtn.className = 'img-remove';
 				removeBtn.type = 'button';
+				removeBtn.className = 'btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-1 d-flex align-items-center justify-content-center';
+				removeBtn.style.zIndex = '10';
+				removeBtn.style.width = '22px';
+				removeBtn.style.height = '22px';
+				removeBtn.style.padding = '0';
+				removeBtn.style.border = 'none';
+				removeBtn.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
+				removeBtn.innerHTML = '<i class="fas fa-times" style="font-size: 10px; color: white;"></i>';
 				removeBtn.setAttribute('data-id', data.id);
-				wrapper.appendChild(img);
+
 				wrapper.appendChild(removeBtn);
+				wrapper.appendChild(link);
 				gallery.appendChild(wrapper);
 			});
 		}

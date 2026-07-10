@@ -182,15 +182,15 @@
 
     <!-- Image/PDF Crop Modal -->
     <div class="modal fade" id="cropperModal" tabindex="-1" aria-labelledby="cropperModalLabel" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-fullscreen">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="cropperModalLabel"><i class="fas fa-crop-alt text-primary me-2"></i>Crop Document / Image</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="img-container" style="max-height: 450px; overflow: hidden; display: flex; justify-content: center; align-items: center; background-color: #f8f9fa;">
-                        <img id="cropperImage" src="" alt="Source Image" style="max-width: 100%; max-height: 450px;">
+                <div class="modal-body p-0" style="height: calc(100vh - 140px); overflow: hidden;">
+                    <div class="img-container" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #f8f9fa;">
+                        <img id="cropperImage" src="" alt="Source Image" style="max-width: 100%; max-height: 100%;">
                     </div>
                 </div>
                 <div class="modal-footer">

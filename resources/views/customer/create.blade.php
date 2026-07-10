@@ -168,7 +168,12 @@
                     <p class="text-muted mb-2">This PDF document is encrypted. Please enter the password to decrypt and preview it.</p>
                     <div class="mb-1">
                         <label for="pdfPasswordInput" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="pdfPasswordInput" placeholder="Enter PDF password">
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="pdfPasswordInput" placeholder="Enter PDF password">
+                            <button class="btn btn-outline-secondary toggle-password" type="button">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                         <div class="text-danger small mt-1 d-none" id="pdfPasswordError">Incorrect password. Please try again.</div>
                     </div>
                 </div>
@@ -236,6 +241,7 @@
                     };
                     reader.readAsDataURL(file);
                 }
+                event.target.value = '';
             });
 
             // Init custom multi-file uploader for documents supporting PDF password verification and Cropping
@@ -473,6 +479,7 @@
                 });
                 fileElem.addEventListener('change', (e) => {
                     handleFiles(e.target.files);
+                    e.target.value = '';
                 });
 
                 document.getElementById('pdfPasswordModal').addEventListener('hidden.bs.modal', function () {

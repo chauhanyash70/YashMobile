@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function() {
             };
             reader.readAsDataURL(file);
         }
+        event.target.value = '';
     });
 
     var profileFormValidate = $('#profile-form').validate({

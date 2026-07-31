@@ -95,4 +95,12 @@ Route::group(['middleware' => ['auth']], function () {
 
     /* Cash Counter Route */
     Route::get('/cash-counter', [\App\Http\Controllers\CashCountController::class, 'index'])->name('cash-counter.index');
+
+    /* Bajaj Details Routes */
+    Route::get('/bajaj-details', [\App\Http\Controllers\BajajDetailController::class, 'create'])->name('bajaj-details.create');
+    Route::post('/bajaj-details/print', [\App\Http\Controllers\BajajDetailController::class, 'print'])->name('bajaj-details.print');
+    Route::post('/bajaj-details/get-device', [\App\Http\Controllers\BajajDetailController::class, 'getDevice'])->name('bajaj-details.getDevice');
+
+
 });
+

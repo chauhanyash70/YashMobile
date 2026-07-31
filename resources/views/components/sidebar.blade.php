@@ -43,6 +43,16 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {{ Route::is('bajaj-details.*') ? 'active' : '' }}"
+                            href="{{ route('bajaj-details.create') }}">
+                            <i class="iconoir-page-star menu-icon"></i>
+                            <span>Bajaj Details</span>
+                        </a>
+                    </li>
+
+
+
+                    <li class="nav-item">
                         <a class="nav-link {{ Route::is('mobiles.index') ? 'active' : '' }}"
                             href="{{ route('mobiles.index') }}">
                             <i class="iconoir-smartphone-device menu-icon"></i>

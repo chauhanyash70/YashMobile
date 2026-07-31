@@ -35,14 +35,16 @@ class InvoiceController extends Controller
             0 => 'invoice_no',
             1 => 'invoice_date',
             2 => 'customer_id',
-            3 => 'grand_total',
-            4 => 'status',
-            5 => 'id',
+            3 => 'subtotal',
+            4 => 'grand_total',
+            5 => 'paid_amount',
+            6 => 'payment_method',
         ];
 
         $limit = $request->input('length');
         $start = $request->input('start');
-        $order = $columns[$request->input('order.0.column') ?? 0];
+        $orderColumnIndex = $request->input('order.0.column');
+        $order = isset($columns[$orderColumnIndex]) ? $columns[$orderColumnIndex] : 'invoice_no';
         $dir = $request->input('order.0.dir') ?? 'desc';
 
         $query = Invoice::with('customer')->orderBy($order, $dir);

@@ -22,8 +22,9 @@
                     <form action="{{ route('mobiles.searchGlobal') }}" method="GET" class="search-form">
                         <div class="search-input-group">
                             <i class="iconoir-search search-icon"></i>
-                            <input type="text" name="hsn" class="search-input"
+                            <input type="text" name="hsn" id="hsnHeaderSearch" class="search-input"
                                 placeholder="Search by HSN Number..." required>
+                            <kbd class="search-shortcut-badge">Ctrl K</kbd>
                         </div>
                     </form>
                 </li>
@@ -108,7 +109,7 @@
 
     .search-input {
         width: 100%;
-        padding: 8px 12px 8px 38px;
+        padding: 8px 55px 8px 38px;
         font-size: 13px;
         color: #1e293b;
         background-color: rgba(241, 245, 249, 0.8);
@@ -117,6 +118,21 @@
         outline: none;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .search-shortcut-badge {
+        position: absolute;
+        right: 10px;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background-color: #e2e8f0;
+        color: #64748b;
+        border: 1px solid #cbd5e1;
+        pointer-events: none;
+        line-height: 1.2;
+        font-family: inherit;
     }
 
     .search-input::placeholder {
@@ -148,6 +164,12 @@
         color: #f1f5f9;
     }
 
+    [data-bs-theme="dark"] .search-shortcut-badge {
+        background-color: #334155;
+        color: #94a3b8;
+        border-color: #475569;
+    }
+
     [data-bs-theme="dark"] .search-input-group:hover .search-input {
         background-color: #1e293b;
         border-color: #475569;
@@ -159,3 +181,16 @@
         box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
     }
 </style>
+
+<script>
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            const hsnInput = document.getElementById('hsnHeaderSearch');
+            if (hsnInput) {
+                hsnInput.focus();
+                hsnInput.select();
+            }
+        }
+    });
+</script>

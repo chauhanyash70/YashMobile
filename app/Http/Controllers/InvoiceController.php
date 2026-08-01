@@ -47,24 +47,36 @@ class InvoiceController extends Controller
         $order = isset($columns[$orderColumnIndex]) ? $columns[$orderColumnIndex] : 'invoice_no';
         $dir = $request->input('order.0.dir') ?? 'desc';
 
-        $query = Invoice::with('customer')->orderBy($order, $dir);
+        $query = Invoice::with('customer');
 
         $totalData = $query->count();
-        $totalFiltered = $totalData;
+
+        if ($request->filled('from_date')) {
+            $query->whereDate('invoice_date', '>=', $request->input('from_date'));
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('invoice_date', '<=', $request->input('to_date'));
+        }
+
+        if ($request->filled('payment_method')) {
+            $query->where('payment_method', $request->input('payment_method'));
+        }
 
         if (! empty($request->input('search.value'))) {
             $search = $request->input('search.value');
-            $query = $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('invoice_no', 'LIKE', "%{$search}%")
                     ->orWhereHas('customer', function ($c) use ($search) {
                         $c->where('name', 'LIKE', "%{$search}%")
                             ->orWhere('phone', 'LIKE', "%{$search}%");
                     });
             });
-            $totalFiltered = $query->count();
         }
 
-        $invoices = $query->offset($start)->limit($limit)->get();
+        $totalFiltered = $query->count();
+
+        $invoices = $query->orderBy($order, $dir)->offset($start)->limit($limit)->get();
 
         $data = [];
         foreach ($invoices as $invoice) {

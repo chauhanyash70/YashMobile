@@ -9,6 +9,9 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Transaction;
+use App\Exports\MobileExport;
+use App\Exports\AvailableMobileExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,11 +26,14 @@ class MobileController extends Controller
 	 */
 	public function index()
 	{
+		$brands = Brand::orderBy('name')->get();
+
 		return view('device.index', [
 			'title' => "Mobiles",
 			'header_title' => "Mobiles",
 			'tagline' => "Manage your inventory and mobile device stock.",
-			'breadcrumb' => array()
+			'breadcrumb' => array(),
+			'brands' => $brands,
 		]);
 	}
 
@@ -116,6 +122,26 @@ class MobileController extends Controller
 
 		$totalData = Mobile::distinct()->count('hsn_number');
 
+		if (!empty($request->input('brand_id'))) {
+			$query->where('mobiles.brand_id', $request->input('brand_id'));
+		}
+
+		if (!empty($request->input('status'))) {
+			$query->where('mobiles.status', $request->input('status'));
+		}
+
+		if (!empty($request->input('condition'))) {
+			$query->where('mobiles.condition_type', $request->input('condition'));
+		}
+
+		if (!empty($request->input('from_date'))) {
+			$query->whereDate('mobiles.created_at', '>=', $request->input('from_date'));
+		}
+
+		if (!empty($request->input('to_date'))) {
+			$query->whereDate('mobiles.created_at', '<=', $request->input('to_date'));
+		}
+
 		$search = $request->input('search.value');
 		if (!empty($search)) {
 			$query->where(function ($q) use ($search) {
@@ -171,11 +197,14 @@ class MobileController extends Controller
 
 	public function available()
 	{
+		$brands = Brand::orderBy('name')->get();
+
 		return view('device.available', [
 			'title' => "Available Mobiles",
 			'header_title' => "Available Stock",
 			'tagline' => "View and manage all mobile devices currently available.",
-			'breadcrumb' => array()
+			'breadcrumb' => array(),
+			'brands' => $brands,
 		]);
 	}
 
@@ -199,6 +228,22 @@ class MobileController extends Controller
 			->select('mobiles.*');
 
 		$totalData = Mobile::where('status', 'in_stock')->where('user_id', auth()->id())->count();
+
+		if (!empty($request->input('brand_id'))) {
+			$query->where('mobiles.brand_id', $request->input('brand_id'));
+		}
+
+		if (!empty($request->input('condition'))) {
+			$query->where('mobiles.condition_type', $request->input('condition'));
+		}
+
+		if (!empty($request->input('from_date'))) {
+			$query->whereDate('mobiles.created_at', '>=', $request->input('from_date'));
+		}
+
+		if (!empty($request->input('to_date'))) {
+			$query->whereDate('mobiles.created_at', '<=', $request->input('to_date'));
+		}
 
 		$search = $request->input('search.value');
 		if (!empty($search)) {
@@ -251,6 +296,22 @@ class MobileController extends Controller
 			"recordsFiltered" => intval($totalFiltered),
 			"data" => $data,
 		]);
+	}
+
+	public function export(Request $request)
+	{
+		return Excel::download(
+			new MobileExport($request->all()),
+			'mobiles_export_' . now()->format('Y-m-d_H-i-s') . '.xlsx'
+		);
+	}
+
+	public function exportAvailable(Request $request)
+	{
+		return Excel::download(
+			new AvailableMobileExport($request->all()),
+			'available_mobiles_export_' . now()->format('Y-m-d_H-i-s') . '.xlsx'
+		);
 	}
 
 	public function show($id)
@@ -342,6 +403,7 @@ class MobileController extends Controller
 					'subtotal' => $unitData->buy_price,
 					'grand_total' => $unitData->buy_price,
 					'paid_amount' => $unitData->buy_price,
+					'payment_status' => 'paid',
 					'status' => 'paid',
 				]);
 

@@ -68,6 +68,8 @@ Route::group(['middleware' => ['auth']], function () {
 
     /* Product (Device) Route */
     // ⚠ All custom GET routes must come BEFORE Route::resource (which registers GET /mobiles/{mobile})
+    Route::get('/mobiles/export', [\App\Http\Controllers\MobileController::class, 'export'])->name('mobiles.export');
+    Route::get('/mobiles/export-available', [\App\Http\Controllers\MobileController::class, 'exportAvailable'])->name('mobiles.exportAvailable');
     Route::get('/mobiles/available', [\App\Http\Controllers\MobileController::class, 'available'])->name('mobiles.available');
     Route::get('/mobiles/buyback/{invoice_item_id}', [\App\Http\Controllers\MobileController::class, 'buyback'])->name('mobiles.buyback');
     Route::get('/mobiles/hsn-history/{id}', [\App\Http\Controllers\MobileController::class, 'hsnHistory'])->name('mobiles.hsnHistory');

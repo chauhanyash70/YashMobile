@@ -128,15 +128,15 @@
                     },
                     {
                         data: 'subtotal',
-                        render: $.fn.dataTable.render.number(',', '.', 2, '₹')
+                        render: $.fn.dataTable.render.inr()
                     },
                     {
                         data: 'total_amount',
-                        render: $.fn.dataTable.render.number(',', '.', 2, '₹')
+                        render: $.fn.dataTable.render.inr()
                     },
                     {
                         data: 'paid_amount',
-                        render: $.fn.dataTable.render.number(',', '.', 2, '₹')
+                        render: $.fn.dataTable.render.inr()
                     },
                     {
                         data: 'payment_method'

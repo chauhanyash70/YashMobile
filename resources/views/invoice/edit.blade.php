@@ -351,8 +351,8 @@
                                                         <td>
                                                             <div class="d-flex justify-content-between align-items-center">
                                                                 <span class="fw-semibold">
-                                                                    ₹<span
-                                                                        class="item_sub_total">{{ $item->price * $item->qty }}</span>
+                                                                    ₹ <span
+                                                                        class="item_sub_total">{{ \App\Http\Traits\Traits::formatINR($item->price * $item->qty, 2) }}</span>
                                                                 </span>
                                                                 <button type="button"
                                                                     class="btn btn-soft-danger btn-sm rounded-circle p-2 border-0"
@@ -401,7 +401,7 @@
                                                         </td>
                                                         <td>
                                                             <div class="d-flex justify-content-between align-items-center">
-                                                                <span class="fw-semibold">₹<span
+                                                                <span class="fw-semibold">₹ <span
                                                                         class="item_sub_total">0.00</span></span>
                                                                 <button type="button"
                                                                     class="btn btn-soft-danger btn-sm rounded-circle p-2 border-0"
@@ -426,7 +426,7 @@
                                                     <td class="border-0 fs-14 text-dark"></td>
                                                     <td class="border-0 fs-14 text-dark text-end"><b>Total</b></td>
                                                     <td class="border-0 fs-14 text-dark"><b>₹ <span
-                                                                id="total">{{ $invoice->grand_total }}</span></b></td>
+                                                                id="total">{{ \App\Http\Traits\Traits::formatINR($invoice->grand_total, 2) }}</span></b></td>
                                                 </tr>
 
                                                 <!-- Payment details subrow in footer -->

@@ -234,8 +234,8 @@
                             @endif
                         </td>
                         <td>{{ $item->qty ?? ($item->quantity ?? 1) }}</td>
-                        <td>{{ number_format($item->price, 2) }}</td>
-                        <td>{{ number_format($item->total, 2) }}</td>
+                        <td>{{ \App\Http\Traits\Traits::formatINR($item->price, 2) }}</td>
+                        <td>{{ \App\Http\Traits\Traits::formatINR($item->total, 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -245,12 +245,12 @@
             @if ($invoice->tax_amount > 0)
                 <tr>
                     <td colspan="4" class="total-label">Tax</td>
-                    <td class="total">{{ number_format($invoice->tax_amount, 2) }}</td>
+                    <td class="total">{{ \App\Http\Traits\Traits::formatINR($invoice->tax_amount, 2) }}</td>
                 </tr>
             @endif
             <tr>
                 <td colspan="4" class="total-label"><strong>Total Amount</strong></td>
-                <td class="total"><strong>{{ number_format($invoice->paid_amount, 2) }}</strong></td>
+                <td class="total"><strong>{{ \App\Http\Traits\Traits::formatINR($invoice->paid_amount, 2) }}</strong></td>
             </tr>
         </table>
 

@@ -226,7 +226,7 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Total Price</span>
-                <span class="detail-value" style="color: #fd7e14; font-size: 16px;">₹{{ number_format($data['total_price'], 2) }}</span>
+                <span class="detail-value" style="color: #fd7e14; font-size: 16px;">₹{{ \App\Http\Traits\Traits::formatINR($data['total_price'], 2) }}</span>
             </div>
         </div>
 
@@ -235,7 +235,7 @@
         <div class="card border-0 shadow-none">
             <div class="detail-row">
                 <span class="detail-label">Down Payment</span>
-                <span class="detail-value">₹{{ number_format($data['down_payment'], 2) }}</span>
+                <span class="detail-value">₹{{ \App\Http\Traits\Traits::formatINR($data['down_payment'], 2) }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">EMI Tenure</span>
@@ -243,7 +243,7 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Monthly EMI Amt</span>
-                <span class="detail-value" style="color: #16a34a; font-weight: 700;">₹{{ number_format($data['monthly_emi'], 2) }}</span>
+                <span class="detail-value" style="color: #16a34a; font-weight: 700;">₹{{ \App\Http\Traits\Traits::formatINR($data['monthly_emi'], 2) }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">First EMI Date</span>

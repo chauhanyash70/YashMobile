@@ -83,8 +83,8 @@ class AccessoryController extends Controller
                 'name' => $data->name,
                 'hsn' => $data->hsn,
                 'stock' => $stockBadge,
-                'purchase_price' => '₹' . number_format($data->purchase_price, 2),
-                'sale_price' => '₹' . number_format($data->sale_price, 2),
+                'purchase_price' => \App\Http\Traits\Traits::formatINR($data->purchase_price, 2, true),
+                'sale_price' => \App\Http\Traits\Traits::formatINR($data->sale_price, 2, true),
 
                 // URLs
                 'edit_url' => route('accessories.edit', $data->id),

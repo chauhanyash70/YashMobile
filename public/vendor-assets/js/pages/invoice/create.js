@@ -310,32 +310,30 @@ $(document)
         } else {
             input[0].stepDown();
         }
-        createInvoiceForm
-            .find('input[name^="invoice_items"]')
+        $('input[name^="invoice_items"]')
             .each(function () {
                 let name = $(this).attr("name");
-                if (name.includes("[price]")) {
+                if (name && name.includes("[price]")) {
                     let price = $(this).val();
                     let row = $(this).closest("[data-repeater-item]");
                     let quantity = row.find(".quantity-input").val();
                     let subTotal = (parseFloat(price) || 0) * (parseInt(quantity) || 0);
-                    row.find(".item_sub_total").text(subTotal.toFixed(2));
+                    row.find(".item_sub_total").text(window.formatInr ? window.formatInr(subTotal, 2, false) : subTotal.toFixed(2));
                 }
             });
         input.trigger("change");
         total();
     })
     .on("blur change keyup", ".price, .quantity-input", function () {
-        createInvoiceForm
-            .find('input[name^="invoice_items"]')
+        $('input[name^="invoice_items"]')
             .each(function () {
                 let name = $(this).attr("name");
-                if (name.includes("[price]")) {
+                if (name && name.includes("[price]")) {
                     let price = $(this).val();
                     let row = $(this).closest("[data-repeater-item]");
                     let quantity = row.find(".quantity-input").val();
                     let subTotal = (parseFloat(price) || 0) * (parseInt(quantity) || 0);
-                    row.find(".item_sub_total").text(subTotal.toFixed(2));
+                    row.find(".item_sub_total").text(window.formatInr ? window.formatInr(subTotal, 2, false) : subTotal.toFixed(2));
                 }
             });
         total();
@@ -520,17 +518,19 @@ $(document)
     }
 
     function total() {
-        var subTotal = document.getElementsByClassName("item_sub_total");
-        var sum = 0;
-        for (var i = 0; i < subTotal.length; i++) {
-            var value = subTotal[i].innerText;
-            if (value == "") {
-                value = 0;
-            }
-            sum += parseFloat(value);
-        }
+        let sum = 0;
+        $('input[name^="invoice_items"]')
+            .each(function () {
+                let name = $(this).attr("name");
+                if (name && name.includes("[price]")) {
+                    let price = parseFloat($(this).val()) || 0;
+                    let row = $(this).closest("[data-repeater-item]");
+                    let quantity = parseInt(row.find(".quantity-input").val()) || 0;
+                    sum += (price * quantity);
+                }
+            });
 
-        $("#total").text(sum.toFixed(2));
+        $("#total").text(window.formatInr ? window.formatInr(sum, 2, false) : sum.toFixed(2));
     }
 
     function updateDisabledProductOptions() {

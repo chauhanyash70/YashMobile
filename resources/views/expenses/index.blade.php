@@ -37,7 +37,7 @@
                                 <span class="text-muted">General Shop Expense</span>
                             @endif
                         </td>
-                        <td class="fw-bold text-danger">₹{{ number_format($expense->amount, 2) }}</td>
+                        <td class="fw-bold text-danger">₹{{ \App\Http\Traits\Traits::formatINR($expense->amount, 2) }}</td>
                         <td>{{ \Carbon\Carbon::parse($expense->expense_date)->format('d M, Y') }}</td>
                         <td class="text-end pe-4">
                             <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-sm btn-outline-secondary">Edit</a>

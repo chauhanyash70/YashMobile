@@ -164,10 +164,10 @@
                                                         {{ $item->qty }}
                                                     </td>
                                                     <td style="min-width: 100px;">
-                                                        {{ number_format($item->price, 2) }}
+                                                        {{ \App\Http\Traits\Traits::formatINR($item->price, 2) }}
                                                     </td>
                                                     <td style="min-width: 120px;">
-                                                        ₹{{ number_format($item->total, 2) }}
+                                                        ₹{{ \App\Http\Traits\Traits::formatINR($item->total, 2) }}
                                                     </td>
                                                     <td class="text-center d-print-none">
                                                         @if ($item->mobile)
@@ -203,16 +203,14 @@
                                             @if ($invoice->tax_amount > 0)
                                                 <tr>
                                                     <td colspan="3" class="border-0 text-end fs-14 text-dark">Tax</td>
-                                                    <td class="border-0 fs-14 text-dark">₹
-                                                        {{ number_format($invoice->tax_amount, 2) }}</td>
+                                                    <td class="border-0 fs-14 text-dark">₹{{ \App\Http\Traits\Traits::formatINR($invoice->tax_amount, 2) }}</td>
                                                     <td class="border-0 d-print-none"></td>
                                                 </tr>
                                             @endif
                                             <tr>
                                                 <td colspan="3" class="border-0 text-end fs-14 text-dark text-success">
                                                     Total Amount</td>
-                                                <td class="border-0 fs-14 text-dark text-success">₹
-                                                    {{ number_format($invoice->paid_amount, 2) }}</td>
+                                                <td class="border-0 fs-14 text-dark text-success">₹{{ \App\Http\Traits\Traits::formatINR($invoice->paid_amount, 2) }}</td>
                                                 <td class="border-0 d-print-none"></td>
                                             </tr>
                                         </tfoot>

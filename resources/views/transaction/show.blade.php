@@ -101,20 +101,20 @@
                                 <div class="bg-soft-primary p-3 rounded-3 mb-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="text-muted fw-medium">Price:</span>
-                                        <h4 class="mb-0 fw-bold text-primary">₹{{ number_format($transaction->price, 2) }}
+                                        <h4 class="mb-0 fw-bold text-primary">₹{{ \App\Http\Traits\Traits::formatINR($transaction->price, 2) }}
                                         </h4>
                                     </div>
                                     @if (($transaction->invoiceItem->discount ?? 0) > 0)
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="text-muted fw-medium">Discount:</span>
                                             <h5 class="mb-0 fw-bold text-danger">
-                                                ₹{{ number_format($transaction->invoiceItem->discount, 2) }}</h5>
+                                                ₹{{ \App\Http\Traits\Traits::formatINR($transaction->invoiceItem->discount, 2) }}</h5>
                                         </div>
                                     @endif
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="text-muted fw-medium">Total:</span>
                                         <h4 class="mb-0 fw-bold text-primary">
-                                            ₹{{ number_format($transaction->invoiceItem->total, 2) }}</h4>
+                                            ₹{{ \App\Http\Traits\Traits::formatINR($transaction->invoiceItem->total, 2) }}</h4>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="text-muted fw-medium">Payment:</span>

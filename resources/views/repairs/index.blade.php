@@ -14,7 +14,7 @@
                 @if (request('mobile_id') && $repairs->count() > 0)
                     <div class="alert alert-info border-0 shadow-sm mb-4 d-flex justify-content-between align-items-center">
                         <span>Total Repair Cost for this device:</span>
-                        <span class="fw-bold fs-5">₹{{ number_format($repairs->sum('repair_cost'), 2) }}</span>
+                        <span class="fw-bold fs-5">₹{{ \App\Http\Traits\Traits::formatINR($repairs->sum('repair_cost'), 2) }}</span>
                     </div>
                 @endif
 

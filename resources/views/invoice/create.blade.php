@@ -312,7 +312,7 @@
                                                     <td>
                                                         <div class="d-flex justify-content-between align-items-center">
                                                             <span class="fw-semibold">
-                                                                ₹<span class="item_sub_total">0.00</span>
+                                                                ₹ <span class="item_sub_total">0.00</span>
                                                             </span>
                                                             <button type="button"
                                                                 class="btn btn-soft-danger btn-sm rounded-circle p-2 border-0"

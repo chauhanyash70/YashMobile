@@ -180,7 +180,7 @@ class RepairController extends Controller
                 'device' => $deviceHtml,
                 'issue' => Str::limit($repair->issue, 30),
                 'technician' => $repair->technician_name ?? 'N/A',
-                'cost' => '₹'.number_format($repair->repair_cost, 2),
+                'cost' => \App\Http\Traits\Traits::formatINR($repair->repair_cost, 2, true),
                 'status' => $statusBadge,
                 'date' => Carbon::parse($repair->repair_date)->format('d M, Y'),
                 'actions' => $actions,

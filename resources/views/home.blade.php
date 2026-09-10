@@ -170,7 +170,7 @@
                         }, {
                             duration: 1000,
                             step: function (now) {
-                                $(this).text('₹' + now.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                                $(this).text(formatInr(now, 2, true));
                             }
                         });
                         $('#accessorySalesCount').prop('Counter', 0).animate({
@@ -186,7 +186,7 @@
                         }, {
                             duration: 1000,
                             step: function (now) {
-                                $(this).text('₹' + now.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                                $(this).text(formatInr(now, 2, true));
                             }
                         });
                         $('#periodProfit').prop('Counter', 0).animate({
@@ -194,7 +194,7 @@
                         }, {
                             duration: 1000,
                             step: function (now) {
-                                $(this).text('₹' + now.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                                $(this).text(formatInr(now, 2, true));
                             }
                         });
                         $('#availableMobileCount').prop('Counter', 0).animate({
@@ -321,14 +321,14 @@
                     yaxis: [{
                         title: { text: 'Turnover', style: { color: '#f87d1f', fontWeight: 600 } },
                         labels: {
-                            formatter: function (value) { return "₹" + Math.round(value).toLocaleString(); },
+                            formatter: function (value) { return formatInr(Math.round(value), 0, '₹'); },
                             style: { colors: '#f87d1f' }
                         }
                     }, {
                         opposite: true,
                         title: { text: 'Profit', style: { color: '#10b981', fontWeight: 600 } },
                         labels: {
-                            formatter: function (value) { return "₹" + Math.round(value).toLocaleString(); },
+                            formatter: function (value) { return formatInr(Math.round(value), 0, '₹'); },
                             style: { colors: '#10b981' }
                         }
                     }],
@@ -344,7 +344,7 @@
                         shared: true,
                         intersect: false,
                         y: {
-                            formatter: function (val) { return "₹" + val.toLocaleString(); }
+                            formatter: function (val) { return formatInr(val, 2, '₹'); }
                         }
                     }
                 });

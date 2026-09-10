@@ -217,11 +217,11 @@
                                                     <span class="text-muted">-</span>
                                                 @endif
                                             </td>
-                                            <td class="text-end fw-medium fs-13">₹{{ number_format($buyPrice, 2) }}</td>
-                                            <td class="text-end text-danger fs-13">₹{{ number_format($repairCost, 2) }}
+                                            <td class="text-end fw-medium fs-13">₹{{ \App\Http\Traits\Traits::formatINR($buyPrice, 2) }}</td>
+                                            <td class="text-end text-danger fs-13">₹{{ \App\Http\Traits\Traits::formatINR($repairCost, 2) }}
                                             </td>
                                             <td class="text-end fw-bold fs-13 border-end bg-soft-primary-light">
-                                                ₹{{ number_format($totalCost, 2) }}</td>
+                                                ₹{{ \App\Http\Traits\Traits::formatINR($totalCost, 2) }}</td>
 
                                             {{-- Sale Details --}}
                                             <td>
@@ -297,13 +297,13 @@
                                             <td class="text-end fw-medium fs-13">
                                                 @if ($sellGross > 0)
                                                     <div class="d-flex flex-column align-items-end">
-                                                        <span>₹{{ number_format($sellGross, 2) }}</span>
+                                                        <span>₹{{ \App\Http\Traits\Traits::formatINR($sellGross, 2) }}</span>
                                                         @if ($sellDiscount > 0)
                                                             <small
-                                                                class="text-danger">-₹{{ number_format($sellDiscount, 2) }}</small>
+                                                                class="text-danger">-₹{{ \App\Http\Traits\Traits::formatINR($sellDiscount, 2) }}</small>
                                                             <div class="border-top w-50 mt-1"></div>
                                                             <span
-                                                                class="fw-bold text-success">₹{{ number_format($sellNet, 2) }}</span>
+                                                                class="fw-bold text-success">₹{{ \App\Http\Traits\Traits::formatINR($sellNet, 2) }}</span>
                                                         @endif
                                                     </div>
                                                 @else
@@ -317,7 +317,7 @@
                                                     <div class="d-flex flex-column align-items-end">
                                                         <span
                                                             class="fw-bold {{ $profit >= 0 ? 'text-success' : 'text-danger' }} fs-13">
-                                                            ₹{{ number_format($profit, 2) }}
+                                                            ₹{{ \App\Http\Traits\Traits::formatINR($profit, 2) }}
                                                         </span>
                                                         <span
                                                             class="badge {{ $profit >= 0 ? 'bg-soft-success text-success' : 'bg-soft-danger text-danger' }} py-0 px-1 mt-1"
@@ -345,28 +345,28 @@
                                     <tfoot class="bg-light fw-bold border-top-2">
                                         <tr>
                                             <td colspan="3" class="text-end py-3">GRAND TOTALS</td>
-                                            <td class="text-end">₹{{ number_format($grandTotalBuy, 2) }}</td>
-                                            <td class="text-end text-danger">₹{{ number_format($grandTotalRepair, 2) }}
+                                            <td class="text-end">₹{{ \App\Http\Traits\Traits::formatINR($grandTotalBuy, 2) }}</td>
+                                            <td class="text-end text-danger">₹{{ \App\Http\Traits\Traits::formatINR($grandTotalRepair, 2) }}
                                             </td>
                                             <td class="text-end border-end bg-soft-primary-light">
-                                                ₹{{ number_format($grandTotalCost, 2) }}</td>
+                                                ₹{{ \App\Http\Traits\Traits::formatINR($grandTotalCost, 2) }}</td>
                                             <td class="text-end">
                                                 <div class="d-flex flex-column align-items-end">
-                                                    <span>₹{{ number_format($grandTotalSale, 2) }}</span>
+                                                    <span>₹{{ \App\Http\Traits\Traits::formatINR($grandTotalSale, 2) }}</span>
                                                     @if ($grandTotalDiscount > 0)
                                                         <div class="border-top w-50 mt-1"></div>
                                                         <span
-                                                            class="text-success">₹{{ number_format($grandTotalSale - $grandTotalDiscount, 2) }}</span>
+                                                            class="text-success">₹{{ \App\Http\Traits\Traits::formatINR($grandTotalSale - $grandTotalDiscount, 2) }}</span>
                                                     @endif
                                                 </div>
                                             </td>
-                                            <td class="text-end text-danger">₹{{ number_format($grandTotalDiscount, 2) }}
+                                            <td class="text-end text-danger">₹{{ \App\Http\Traits\Traits::formatINR($grandTotalDiscount, 2) }}
                                             </td>
                                             <td class="text-end border-start bg-theme-light">
                                                 <div class="d-flex flex-column align-items-end">
                                                     <span
                                                         class="{{ $grandTotalProfit >= 0 ? 'text-success' : 'text-danger' }}">
-                                                        ₹{{ number_format($grandTotalProfit, 2) }}
+                                                        ₹{{ \App\Http\Traits\Traits::formatINR($grandTotalProfit, 2) }}
                                                     </span>
                                                     @if ($grandTotalCost > 0)
                                                         <span

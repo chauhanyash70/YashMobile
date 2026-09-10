@@ -80,14 +80,14 @@
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm p-3 h-100">
                     <span class="text-muted small">Total Investment</span>
-                    <span class="fw-bold fs-4 mt-1">₹{{ number_format($totalInvestment, 2) }}</span>
+                    <span class="fw-bold fs-4 mt-1">₹{{ \App\Http\Traits\Traits::formatINR($totalInvestment, 2) }}</span>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm p-3 h-100">
                     <span class="text-muted small">Accumulated Profit</span>
                     <span
-                        class="fw-bold fs-4 mt-1 {{ $totalProfit >= 0 ? 'text-success' : 'text-danger' }}">₹{{ number_format($totalProfit, 2) }}</span>
+                        class="fw-bold fs-4 mt-1 {{ $totalProfit >= 0 ? 'text-success' : 'text-danger' }}">₹{{ \App\Http\Traits\Traits::formatINR($totalProfit, 2) }}</span>
                 </div>
             </div>
         </div>
@@ -141,12 +141,12 @@
                                                         }
                                                     }
                                                 @endphp
-                                                {{ $t->transaction_type == 'buy' ? '-' : '+' }}₹{{ number_format($displayPrice, 2) }}
+                                                {{ $t->transaction_type == 'buy' ? '-' : '+' }}₹{{ \App\Http\Traits\Traits::formatINR($displayPrice, 2) }}
                                             </td>
                                             <td>
                                                 @if ($t->transaction_type == 'sell' && isset($invItem) && $invItem && $invItem->discount > 0)
                                                     <span
-                                                        class="text-danger fw-bold">₹{{ number_format($invItem->discount, 2) }}</span>
+                                                        class="text-danger fw-bold">₹{{ \App\Http\Traits\Traits::formatINR($invItem->discount, 2) }}</span>
                                                 @else
                                                     <span class="text-muted">-</span>
                                                 @endif
@@ -179,7 +179,7 @@
                                             </td>
                                             <td>{{ $h->created_at->format('d M, Y') }}</td>
                                             <td>Internal</td>
-                                            <td class="fw-bold text-danger">-₹{{ number_format($h->repair_cost, 2) }}</td>
+                                            <td class="fw-bold text-danger">-₹{{ \App\Http\Traits\Traits::formatINR($h->repair_cost, 2) }}</td>
                                             <td><span class="text-muted">-</span></td>
                                             <td colspan="2"><span class="text-muted small">Maintenance</span></td>
                                         </tr>

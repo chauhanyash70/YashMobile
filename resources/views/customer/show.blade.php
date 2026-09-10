@@ -39,7 +39,7 @@
                                         </div>
                                         <div class="text-center bg-light rounded-3 p-2 px-3 border">
                                             <h5 class="mb-0 fw-bold">
-                                                {{ number_format($customer->invoices->sum('grand_total'), 0) }}</h5>
+                                                ₹{{ \App\Http\Traits\Traits::formatINR($customer->invoices->sum('grand_total'), 2) }}</h5>
                                             <p class="text-muted mb-0 small">Total Spent</p>
                                         </div>
                                     </div>
@@ -261,7 +261,7 @@
                                                     </div>
                                                 </td>
                                                 <td class="text-end fw-bold text-dark">
-                                                    ₹{{ number_format($invoice->grand_total, 2) }}
+                                                    ₹{{ \App\Http\Traits\Traits::formatINR($invoice->grand_total, 2) }}
                                                 </td>
                                                 <td class="text-center">
                                                     @if ($invoice->payment_status == 'paid')

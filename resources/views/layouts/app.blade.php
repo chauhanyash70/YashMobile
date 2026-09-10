@@ -64,6 +64,7 @@
 	<script src="{{ asset('vendor-assets/libs/simplebar/simplebar.min.js') }}"></script>
 	<script src="{{ asset('vendor-assets/libs/tobii/js/tobii.min.js') }}"></script>
 	<script src="{{ asset('vendor-assets/libs/sweetalert2/sweetalert2.min.js') }}"></script>
+	<script src="{{ asset('vendor-assets/libs/data-tables/datatables.min.js') }}"></script>
 	<script src="{{ asset('vendor-assets/js/app.js') }}"></script>
 
 	<script>
@@ -90,6 +91,49 @@
 				toastr.{{ $msg }}("{{ Session::get($msg) }}");
 			@endif
 		@endforeach
+
+		// Global Indian Currency (INR) Formatter
+		window.formatInr = function (amount, decimals = 2, symbol = false) {
+			if (amount === null || amount === undefined || isNaN(amount)) {
+				let prefix = (symbol === true) ? '₹' : (typeof symbol === 'string' ? symbol : '');
+				return prefix + (0).toFixed(decimals);
+			}
+
+			let num = Number(amount);
+			let isNegative = num < 0;
+			num = Math.abs(num);
+
+			let parts = num.toFixed(decimals).split('.');
+			let integerPart = parts[0];
+			let decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+
+			if (integerPart.length > 3) {
+				let lastThree = integerPart.substring(integerPart.length - 3);
+				let remaining = integerPart.substring(0, integerPart.length - 3);
+				let remainingFormatted = remaining.replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+				integerPart = remainingFormatted + ',' + lastThree;
+			}
+
+			let prefix = (symbol === true) ? '₹' : (typeof symbol === 'string' ? symbol : '');
+			let sign = isNegative ? '-' : '';
+
+			return sign + prefix + integerPart + decimalPart;
+		};
+
+		window.registerDataTableInr = function () {
+			if (typeof $ !== 'undefined' && $.fn && $.fn.dataTable && $.fn.dataTable.render) {
+				$.fn.dataTable.render.inr = function (decimals = 2, prefix = '₹') {
+					return function (data, type, row) {
+						if (type === 'display') {
+							return window.formatInr(data, decimals, prefix);
+						}
+						return data;
+					};
+				};
+			}
+		};
+		window.registerDataTableInr();
+		$(document).ready(window.registerDataTableInr);
 
 		const tobii = new Tobii();
 

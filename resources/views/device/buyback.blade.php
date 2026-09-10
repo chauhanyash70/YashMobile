@@ -113,7 +113,7 @@
                                             class="text-danger">*</span></label>
                                     <input type="number" step="0.01" name="buyback_price"
                                         class="form-control border-primary" placeholder="0.00" required>
-                                    <small class="text-info">Sold for: ₹{{ number_format($invoiceItem->price, 2) }}</small>
+                                    <small class="text-info">Sold for: ₹{{ \App\Http\Traits\Traits::formatINR($invoiceItem->price, 2) }}</small>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">Buyback Date <span

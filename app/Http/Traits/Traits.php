@@ -110,5 +110,36 @@ trait Traits
         return str_pad($rand, $length, '0', STR_PAD_LEFT);
     }
 
+    /**
+     * Format currency into Indian Rupees (INR) format.
+     */
+    public static function formatINR($amount, int $decimals = 2, bool|string $symbol = false): string
+    {
+        if ($amount === null || $amount === '') {
+            $zeroFormatted = number_format(0, $decimals, '.', '');
+            $prefix = $symbol === true ? '₹' : (is_string($symbol) ? $symbol : '');
+            return $prefix . $zeroFormatted;
+        }
 
+        $num = (float) $amount;
+        $isNegative = $num < 0;
+        $num = abs($num);
+
+        $formatted = number_format($num, $decimals, '.', '');
+        $parts = explode('.', $formatted);
+        $integerPart = $parts[0];
+        $decimalPart = isset($parts[1]) ? '.' . $parts[1] : '';
+
+        if (strlen($integerPart) > 3) {
+            $lastThree = substr($integerPart, -3);
+            $remaining = substr($integerPart, 0, -3);
+            $remainingFormatted = preg_replace("/\B(?=(\d{2})+(?!\d))/", ",", $remaining);
+            $integerPart = $remainingFormatted . ',' . $lastThree;
+        }
+
+        $prefix = $symbol === true ? '₹' : (is_string($symbol) ? $symbol : '');
+        $sign = $isNegative ? '-' : '';
+
+        return $sign . $prefix . $integerPart . $decimalPart;
+    }
 }

@@ -322,10 +322,19 @@ class MobileController extends Controller
 			'transactions.customer',
 			'repairs',
 			'expenses'
-		])->findOrFail($id);
+		])->find($id);
 
-		// For history, we search all records with same serial number
+		if (!$mobile) {
+			return redirect()->route('mobiles.index')->with('error', 'Mobile device not found.');
+		}
+
+		// For history, we search all records with same serial number (excluding orphaned units with no transactions or invoices)
 		$history = Mobile::where('hsn_number', $mobile->hsn_number)
+			->where(function ($q) use ($mobile) {
+				$q->where('id', $mobile->id)
+					->orWhereHas('transactions')
+					->orWhereHas('invoiceItems');
+			})
 			->with(['transactions.customer', 'invoiceItems.invoice.customer'])
 			->orderBy('mobiles.id', 'desc')
 			->get();
@@ -647,13 +656,36 @@ class MobileController extends Controller
 	public function destroy($id)
 	{
 		try {
+			DB::beginTransaction();
 			$mobile = Mobile::findOrFail($id);
 			if ($mobile->invoiceItems()->count() > 0) {
 				return back()->with('error', 'Cannot delete mobile with sales history.');
 			}
+
+			// If this mobile was bought back, revert the previous sale item is_bought_back flag
+			$previousMobile = Mobile::where('hsn_number', $mobile->hsn_number)
+				->where('id', '<', $mobile->id)
+				->orderBy('id', 'desc')
+				->first();
+
+			if ($previousMobile) {
+				$previousSaleItem = InvoiceItem::where('mobile_id', $previousMobile->id)
+					->where('is_bought_back', true)
+					->latest()
+					->first();
+
+				if ($previousSaleItem) {
+					$previousSaleItem->update(['is_bought_back' => false]);
+				}
+			}
+
+			$mobile->transactions()->delete();
 			$mobile->delete();
+			DB::commit();
+
 			return redirect()->route('mobiles.index')->with('success', 'Mobile deleted successfully.');
 		} catch (Exception $e) {
+			DB::rollBack();
 			return back()->with('error', 'Error deleting mobile: ' . $e->getMessage());
 		}
 	}
@@ -662,6 +694,11 @@ class MobileController extends Controller
 	{
 		$mobile = Mobile::with(['brand', 'model'])->findOrFail($id);
 		$history = Mobile::where('hsn_number', $mobile->hsn_number)
+			->where(function ($q) use ($mobile) {
+				$q->where('id', $mobile->id)
+					->orWhereHas('transactions')
+					->orWhereHas('invoiceItems');
+			})
 			->with(['transactions.customer', 'invoiceItems.invoice.customer'])
 			->orderBy('mobiles.id', 'desc')
 			->get();

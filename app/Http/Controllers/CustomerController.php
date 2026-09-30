@@ -153,6 +153,9 @@ class CustomerController extends Controller
 	public function show(Customer $customer)
 	{
 		$customer->load([
+			'invoices' => function ($q) {
+				$q->orderBy('id', 'desc');
+			},
 			'invoices.items.mobile.brand',
 			'invoices.items.mobile.model',
 		]);

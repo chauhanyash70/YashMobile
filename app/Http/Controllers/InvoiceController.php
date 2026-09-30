@@ -7,6 +7,7 @@ use App\Models\Accessory;
 use App\Models\Brand;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Mobile;
 use App\Models\MobileModel;
 use App\Models\Transaction;
@@ -76,7 +77,13 @@ class InvoiceController extends Controller
 
         $totalFiltered = $query->count();
 
-        $invoices = $query->orderBy($order, $dir)->offset($start)->limit($limit)->get();
+        if ($order === 'invoice_no') {
+            $query->orderBy('id', $dir);
+        } else {
+            $query->orderBy($order, $dir);
+        }
+
+        $invoices = $query->offset($start)->limit($limit)->get();
 
         $data = [];
         foreach ($invoices as $invoice) {
@@ -969,15 +976,61 @@ class InvoiceController extends Controller
             DB::beginTransaction();
             $invoice = Invoice::with(['items.mobile', 'items.accessory'])->findOrFail($id);
 
-            // Revert status/stock
-            foreach ($invoice->items as $item) {
-                if ($item->mobile) {
-                    $item->mobile->update(['status' => 'in_stock']);
+            if ($invoice->invoice_type === 'sell') {
+                // Revert status/stock for sold items
+                foreach ($invoice->items as $item) {
+                    if ($item->mobile) {
+                        $item->mobile->update(['status' => 'in_stock']);
+                    }
+                    if ($item->accessory) {
+                        $item->accessory->increment('stock', $item->qty ?? 1);
+                    }
                 }
-                if ($item->accessory) {
-                    $item->accessory->increment('stock', $item->qty ?? 1);
+                // Delete associated sale transactions
+                Transaction::where('invoice_no', $invoice->invoice_no)->delete();
+            } else {
+                // For buy invoices:
+                foreach ($invoice->items as $item) {
+                    if ($item->accessory) {
+                        $item->accessory->decrement('stock', $item->qty ?? 1);
+                    }
+                    if ($item->mobile) {
+                        $mobile = $item->mobile;
+
+                        // If this mobile was created as a buyback, revert previous unit's is_bought_back flag
+                        $previousMobile = Mobile::where('hsn_number', $mobile->hsn_number)
+                            ->where('id', '<', $mobile->id)
+                            ->orderBy('id', 'desc')
+                            ->first();
+
+                        if ($previousMobile) {
+                            $previousSaleItem = InvoiceItem::where('mobile_id', $previousMobile->id)
+                                ->where('is_bought_back', true)
+                                ->latest()
+                                ->first();
+
+                            if ($previousSaleItem) {
+                                $previousSaleItem->update(['is_bought_back' => false]);
+                            }
+                        }
+
+                        // Check if mobile has any other sales or invoices
+                        $otherInvoiceItemsCount = InvoiceItem::where('mobile_id', $mobile->id)
+                            ->where('invoice_id', '!=', $invoice->id)
+                            ->count();
+
+                        // If this mobile only belonged to this buy invoice and has no other sales history, clean up unit
+                        if ($otherInvoiceItemsCount === 0) {
+                            $mobile->repairs()->delete();
+                            $mobile->expenses()->delete();
+                            $mobile->transactions()->delete();
+                            $mobile->delete();
+                        } else {
+                            $mobile->update(['status' => 'sold']);
+                        }
+                    }
                 }
-                // Delete associated transactions
+                // Delete associated buy transactions
                 Transaction::where('invoice_no', $invoice->invoice_no)->delete();
             }
 

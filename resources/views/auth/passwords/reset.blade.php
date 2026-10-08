@@ -5,7 +5,7 @@
 	<div class="text-center">
 		<h4 class="mt-3 mb-1 fw-semibold text-muted fs-18">{{ __('Reset Password') }}</h4>
 	</div>
-	<form class="my-2" method="POST" action="{{ route('password.reset') }}" id="reset-password-form">
+	<form class="my-2" method="POST" action="{{ route('password.update') }}" id="reset-password-form">
 		@csrf
         <input type="hidden" name="token" value="{{ $token }}">
 		<div class="form-group mb-2">
@@ -21,10 +21,15 @@
 
 		<div class="form-group mb-2">
 			<label class="form-label" for="password">{{ __('Password') }}</label>
-			<input type="password" class="form-control password-field @error('password') is-invalid @enderror" 
-					name="password" placeholder="Enter Password">
+			<div class="input-group">
+				<input type="password" class="form-control password-field @error('password') is-invalid @enderror" 
+						id="password" name="password" placeholder="Enter Password">
+				<button class="btn btn-outline-primary toggle-password" type="button">
+					<i class="fas fa-eye"></i>
+				</button>
+			</div>
 			@error('password')
-				<span class="invalid-feedback" role="alert">
+				<span class="invalid-feedback d-block" role="alert">
 					<strong>{{ $message }}</strong>
 				</span>
 			@enderror
@@ -32,13 +37,8 @@
 
         <div class="form-group">
 			<label class="form-label" for="password-confirm">{{ __('Confirm Password') }}</label>
-			<div class="input-group">
-				<input type="password" class="form-control @error('password_confirmation') is-invalid @enderror" name="password_confirmation"
+			<input type="password" class="form-control @error('password_confirmation') is-invalid @enderror" name="password_confirmation"
 				id="password-confirm" placeholder="Enter Password">
-				<button class="btn btn-outline-primary toggle-password" type="button">
-					<i class="fas fa-eye"></i>
-				</button>
-			</div>
 			@error('password_confirmation')
 				<span class="invalid-feedback" role="alert">
 					<strong>{{ $message }}</strong>

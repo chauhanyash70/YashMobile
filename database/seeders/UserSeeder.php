@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
     {
         $user = array(
             'name' => config('app.name'),
-            'email' => 'yash@yopmail.com',
+            'email' => 'admin@yashmobileuna.com',
             'password' => Hash::make('Password@Yashmobile'),
         );
         if(!User::where('email',$user['email'])->exists()){

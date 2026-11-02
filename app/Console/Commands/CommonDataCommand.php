@@ -144,12 +144,21 @@ class CommonDataCommand extends Command
 
         // C. Sync existing data from bajaj_approval_number -> approval_number
         if (Schema::hasColumn($tableName, 'bajaj_approval_number')) {
-            $pendingApprovalCount = DB::table($tableName)
-                ->whereNotNull('bajaj_approval_number')
-                ->where(function ($q) {
-                    $q->whereNull('approval_number')->orWhere('approval_number', '');
-                })
-                ->count();
+            $hasApprovalCol = Schema::hasColumn($tableName, 'approval_number');
+
+            if ($hasApprovalCol) {
+                $pendingApprovalCount = DB::table($tableName)
+                    ->whereNotNull('bajaj_approval_number')
+                    ->where(function ($q) {
+                        $q->whereNull('approval_number')->orWhere('approval_number', '');
+                    })
+                    ->count();
+            } else {
+                // Column does not exist yet (e.g. during --dry-run)
+                $pendingApprovalCount = DB::table($tableName)
+                    ->whereNotNull('bajaj_approval_number')
+                    ->count();
+            }
 
             if ($pendingApprovalCount > 0) {
                 if ($dryRun) {
@@ -164,10 +173,19 @@ class CommonDataCommand extends Command
         }
 
         // D. Link existing 'bajaj_finance' records to finance_company_id = 1
-        $pendingCompanyCount = DB::table($tableName)
-            ->where('payment_method', 'bajaj_finance')
-            ->whereNull('finance_company_id')
-            ->count();
+        $hasFinanceCompanyIdCol = Schema::hasColumn($tableName, 'finance_company_id');
+
+        if ($hasFinanceCompanyIdCol) {
+            $pendingCompanyCount = DB::table($tableName)
+                ->where('payment_method', 'bajaj_finance')
+                ->whereNull('finance_company_id')
+                ->count();
+        } else {
+            // Column does not exist yet (e.g. during --dry-run)
+            $pendingCompanyCount = DB::table($tableName)
+                ->where('payment_method', 'bajaj_finance')
+                ->count();
+        }
 
         if ($pendingCompanyCount > 0) {
             if ($dryRun) {

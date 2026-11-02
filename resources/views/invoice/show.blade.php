@@ -30,10 +30,11 @@
                                         </h5>
                                         <div class="col-lg-9">
                                             <span
-                                                class="form-control-plaintext d-inline-block">{{ $invoice->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst($invoice->payment_method) }}</span>
-                                            @if ($invoice->bajaj_approval_number)
+                                                class="form-control-plaintext d-inline-block">{{ $invoice->financeCompany ? $invoice->financeCompany->name : ($invoice->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst(str_replace('_', ' ', $invoice->payment_method))) }}</span>
+                                            @php $appr = $invoice->approval_number ?: $invoice->bajaj_approval_number; @endphp
+                                            @if ($appr)
                                                 <span class="badge bg-soft-primary border border-primary text-primary">Appr
-                                                    No: {{ $invoice->bajaj_approval_number }}</span>
+                                                    No: {{ $appr }}</span>
                                             @endif
                                         </div>
                                     </div>

@@ -503,12 +503,26 @@ $(document)
                 "invoice_items[0][price]": { required: "The price field is required" },
             },
             errorPlacement: function (error, element) {
-                if (element.closest(".input-group").length) {
+                if (element.closest(".iti").length) {
+                    element.closest(".iti").after(error);
+                } else if (element.closest(".input-group").length) {
                     element.closest(".input-group").after(error);
                 } else if (element.hasClass("select2-hidden-accessible")) {
-                    error.insertAfter($(element).next(".select2-container").find(".dropdown-wrapper"));
+                    error.insertAfter($(element).next(".select2-container"));
                 } else {
                     error.insertAfter(element);
+                }
+            },
+            highlight: function (element) {
+                $(element).addClass("is-invalid").removeClass("is-valid");
+                if ($(element).closest(".iti").length) {
+                    $(element).closest(".iti").find(".intl-tel-input-field").addClass("is-invalid");
+                }
+            },
+            unhighlight: function (element) {
+                $(element).removeClass("is-invalid");
+                if ($(element).closest(".iti").length) {
+                    $(element).closest(".iti").find(".intl-tel-input-field").removeClass("is-invalid");
                 }
             },
             submitHandler: function (form) {

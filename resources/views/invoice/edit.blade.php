@@ -7,6 +7,41 @@
     <link href="{{ asset('vendor-assets/libs/vanillajs-datepicker/css/datepicker.min.css') }}" rel="stylesheet"
         type="text/css" />
     <link href="{{ asset('assets/css/select2/select2.min.css') }}" rel="stylesheet" type="text/css" />
+    <style>
+        /* Modern Validation Error & Focus Styling */
+        label.error {
+            display: flex !important;
+            align-items: center !important;
+            width: 100% !important;
+            font-size: 11.5px !important;
+            font-weight: 500 !important;
+            color: #ef4444 !important;
+            margin-top: 5px !important;
+            margin-bottom: 3px !important;
+            line-height: 1.3 !important;
+        }
+        label.error::before {
+            content: "•";
+            color: #ef4444;
+            font-size: 15px;
+            margin-right: 5px;
+            line-height: 1;
+        }
+        .form-control.is-invalid,
+        .intl-tel-input-field.is-invalid {
+            border-color: #ef4444 !important;
+            background-color: #fffbfa !important;
+        }
+        .form-control.is-invalid:focus,
+        .intl-tel-input-field.is-invalid:focus {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 0.15rem rgba(239, 68, 68, 0.15) !important;
+        }
+        .iti {
+            width: 100% !important;
+            display: block !important;
+        }
+    </style>
 @endsection
 @section('content')
     <div class="container-xxl">
@@ -57,30 +92,34 @@
 
                         <!-- Customer information and details card body -->
                         <div class="card-body p-4">
-                            <div class="row row-cols-3 d-flex justify-content-md-between mb-4">
-                                <div class="col-12 col-md-3 col-md-4 col-xl-4 d-print-flex align-self-center">
-                                    <div>
+                            <div class="row d-flex justify-content-md-between mb-4">
+                                <div class="col-12 col-md-5 col-xl-4 d-print-flex align-self-start">
+                                    <div class="w-100">
                                         <strong class="fs-14 d-block mb-2 text-dark">Invoice to : <span
                                                 class="text-danger">*</span></strong>
-                                        <x-intl-tel-input name="mobile" id="mobile" class="mb-2" placeholder="Enter Mobile" value="{{ $invoice->customer->phone ?? '' }}" />
-                                        @error('mobile')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                        <input id="name" name="name" type="text" class="form-control mt-1"
-                                            placeholder="Enter Name" value="{{ $invoice->customer->name ?? '' }}">
-                                        @error('name')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
+                                        <div class="mb-3">
+                                            <x-intl-tel-input name="mobile" id="mobile" placeholder="Enter Mobile" value="{{ $invoice->customer->phone ?? '' }}" />
+                                            @error('mobile')
+                                                <label id="mobile-error" class="error">{{ $message }}</label>
+                                            @enderror
+                                        </div>
+                                        <div class="mb-2">
+                                            <input id="name" name="name" type="text" class="form-control"
+                                                placeholder="Enter Name" value="{{ $invoice->customer->name ?? '' }}">
+                                            @error('name')
+                                                <label id="name-error" class="error">{{ $message }}</label>
+                                            @enderror
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="col-12 col-md-3 col-md-4 col-xl-4 d-print-flex align-self-center mt-3 mt-md-0">
-                                    <div>
+                                <div class="col-12 col-md-5 col-xl-4 d-print-flex align-self-start mt-3 mt-md-0">
+                                    <div class="w-100">
                                         <address class="fs-13 mb-0">
                                             <strong class="fs-14 d-block mb-2 text-dark">Billed To :</strong>
                                             <textarea class="form-control" rows="3" id="address" name="address" placeholder="Enter Address">{{ $invoice->customer->address ?? '' }}</textarea>
                                             @error('address')
-                                                <span class="text-danger">{{ $message }}</span>
+                                                <label id="address-error" class="error">{{ $message }}</label>
                                             @enderror
                                         </address>
                                     </div>
@@ -431,57 +470,84 @@
 
                                                 <!-- Payment details subrow in footer -->
                                                 <tr>
-                                                    <td class="border-0" colspan="2"></td>
-                                                    <td class="border-0" colspan="2">
-                                                        <div class="d-flex justify-content-end gap-3">
-                                                            <div class="form-check">
-                                                                <input class="form-check-input" type="radio"
-                                                                    name="payment_method" id="payment_cash"
-                                                                    value="cash"
-                                                                    {{ $invoice->payment_method == 'cash' ? 'checked' : '' }}
-                                                                    style="min-width: 15px; cursor:pointer;">
-                                                                <label class="form-check-label fw-semibold"
-                                                                    for="payment_cash"
-                                                                    style="cursor:pointer;">Cash</label>
-                                                            </div>
-                                                            <div class="form-check">
-                                                                <input class="form-check-input" type="radio"
-                                                                    name="payment_method" id="payment_card"
-                                                                    value="card"
-                                                                    {{ $invoice->payment_method == 'card' ? 'checked' : '' }}
-                                                                    style="min-width: 15px; cursor:pointer;">
-                                                                <label class="form-check-label fw-semibold"
-                                                                    for="payment_card"
-                                                                    style="cursor:pointer;">Card</label>
-                                                            </div>
-                                                            <div class="form-check">
-                                                                <input class="form-check-input" type="radio"
-                                                                    name="payment_method" id="payment_upi" value="upi"
-                                                                    {{ $invoice->payment_method == 'upi' ? 'checked' : '' }}
-                                                                    style="min-width: 15px; cursor:pointer;">
-                                                                <label class="form-check-label fw-semibold"
-                                                                    for="payment_upi" style="cursor:pointer;">UPI</label>
-                                                            </div>
-                                                            <div class="form-check">
-                                                                <input class="form-check-input" type="radio"
-                                                                    name="payment_method" id="payment_bajaj"
-                                                                    value="bajaj_finance"
-                                                                    {{ $invoice->payment_method == 'bajaj_finance' ? 'checked' : '' }}
-                                                                    style="min-width: 15px; cursor:pointer;">
-                                                                <label class="form-check-label fw-semibold"
-                                                                    for="payment_bajaj" style="cursor:pointer;">Bajaj
-                                                                    Finance</label>
-                                                            </div>
-                                                        </div>
+                                                    <td class="border-0" colspan="4">
+                                                        <div class="d-flex flex-column align-items-end">
+                                                            <!-- 1. Payment Radios in single line -->
+                                                            <div class="d-flex justify-content-end gap-3 gap-md-4 align-items-center flex-nowrap">
+                                                                <div class="form-check mb-0">
+                                                                    <input class="form-check-input payment-radio" type="radio"
+                                                                        name="payment_method" id="payment_cash"
+                                                                        value="cash"
+                                                                        {{ $invoice->payment_method == 'cash' ? 'checked' : '' }}
+                                                                        style="min-width: 16px; cursor:pointer;">
+                                                                    <label class="form-check-label fw-semibold text-nowrap"
+                                                                        for="payment_cash"
+                                                                        style="cursor:pointer;">Cash</label>
+                                                                </div>
+                                                                <div class="form-check mb-0">
+                                                                    <input class="form-check-input payment-radio" type="radio"
+                                                                        name="payment_method" id="payment_card"
+                                                                        value="card"
+                                                                        {{ $invoice->payment_method == 'card' ? 'checked' : '' }}
+                                                                        style="min-width: 16px; cursor:pointer;">
+                                                                    <label class="form-check-label fw-semibold text-nowrap"
+                                                                        for="payment_card"
+                                                                        style="cursor:pointer;">Card</label>
+                                                                </div>
+                                                                <div class="form-check mb-0">
+                                                                    <input class="form-check-input payment-radio" type="radio"
+                                                                        name="payment_method" id="payment_upi" value="upi"
+                                                                        {{ $invoice->payment_method == 'upi' ? 'checked' : '' }}
+                                                                        style="min-width: 16px; cursor:pointer;">
+                                                                    <label class="form-check-label fw-semibold text-nowrap"
+                                                                        for="payment_upi" style="cursor:pointer;">UPI</label>
+                                                                </div>
 
-                                                        <!-- dynamic bajaj approval layout box -->
-                                                        <div id="bajaj_approval_div"
-                                                            style="display: {{ $invoice->payment_method == 'bajaj_finance' ? 'block' : 'none' }};"
-                                                            class="mt-2">
-                                                            <input type="text" name="bajaj_approval_number"
-                                                                id="bajaj_approval_number" class="form-control"
-                                                                placeholder="Enter Bajaj Approval Number"
-                                                                value="{{ $invoice->bajaj_approval_number }}">
+                                                                @php
+                                                                    $isFinance = ($invoice->payment_method === 'finance' || $invoice->payment_method === 'bajaj_finance' || !empty($invoice->finance_company_id) || !in_array($invoice->payment_method, ['cash', 'card', 'upi', 'bank_transfer', 'credit']));
+                                                                    $selectedCompanyId = $invoice->finance_company_id ?: ($invoice->payment_method === 'bajaj_finance' ? 1 : null);
+                                                                @endphp
+
+                                                                <div class="form-check mb-0">
+                                                                    <input class="form-check-input payment-radio" type="radio"
+                                                                        name="payment_method" id="payment_finance" value="finance"
+                                                                        {{ $isFinance ? 'checked' : '' }}
+                                                                        style="min-width: 16px; cursor:pointer;">
+                                                                    <label class="form-check-label fw-semibold text-primary text-nowrap"
+                                                                        for="payment_finance" style="cursor:pointer;">
+                                                                        <i class="iconoir-credit-card me-1"></i>Finance
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- 2. Dynamic Finance Section (Select Box + Text Box with wider width) -->
+                                                            <div id="finance_details_box" style="display: {{ $isFinance ? 'block' : 'none' }}; width: 100%; max-width: 520px;" class="mt-3 p-3 bg-light border rounded-3 shadow-sm">
+                                                                <div class="row g-2">
+                                                                    <div class="col-sm-6">
+                                                                        <label class="form-label fs-11 fw-bold text-muted mb-1 text-uppercase">Finance Company <span class="text-danger">*</span></label>
+                                                                        <select name="finance_company_id" id="finance_company_id" class="form-select form-select-sm" {{ $isFinance ? 'required' : '' }}>
+                                                                            <option value="">-- Select Finance Company --</option>
+                                                                            @if(isset($financeCompanies) && $financeCompanies->count() > 0)
+                                                                                @foreach($financeCompanies as $company)
+                                                                                    <option value="{{ $company->id }}" data-name="{{ $company->name }}"
+                                                                                        {{ ($selectedCompanyId == $company->id || ($invoice->payment_method == $company->code)) ? 'selected' : '' }}>
+                                                                                        {{ $company->name }}
+                                                                                    </option>
+                                                                                @endforeach
+                                                                            @else
+                                                                                <option value="1" data-name="Bajaj Finance" selected>Bajaj Finance</option>
+                                                                            @endif
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="col-sm-6">
+                                                                        <label class="form-label fs-11 fw-bold text-muted mb-1 text-uppercase">Approval / Loan No <span class="text-danger">*</span></label>
+                                                                        <input type="text" name="approval_number" id="finance_approval_number"
+                                                                            class="form-control form-control-sm" placeholder="Enter Approval Number"
+                                                                            value="{{ $invoice->approval_number ?: $invoice->bajaj_approval_number }}"
+                                                                            {{ $isFinance ? 'required' : '' }}>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -575,12 +641,23 @@
     <script src="{{ asset('vendor-assets/js/pages/invoice/update.js') }}"></script>
     <script>
         $(document).on('change', 'input[name="payment_method"]', function() {
-            if ($(this).val() === 'bajaj_finance') {
-                $('#bajaj_approval_div').show();
-                $('#bajaj_approval_number').attr('required', true);
+            if ($(this).val() === 'finance') {
+                $('#finance_details_box').slideDown(200);
+                $('#finance_company_id').attr('required', true);
+                $('#finance_approval_number').attr('required', true);
             } else {
-                $('#bajaj_approval_div').hide();
-                $('#bajaj_approval_number').attr('required', false).val('');
+                $('#finance_details_box').slideUp(200);
+                $('#finance_company_id').attr('required', false).val('');
+                $('#finance_approval_number').attr('required', false).val('');
+            }
+        });
+
+        $(document).on('change', '#finance_company_id', function() {
+            var selectedName = $(this).find('option:selected').data('name');
+            if (selectedName) {
+                $('#finance_approval_number').attr('placeholder', 'Enter ' + selectedName + ' Approval Number');
+            } else {
+                $('#finance_approval_number').attr('placeholder', 'Enter Approval Number');
             }
         });
     </script>

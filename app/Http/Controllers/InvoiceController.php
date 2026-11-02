@@ -6,6 +6,7 @@ use App\Http\Traits\Traits;
 use App\Models\Accessory;
 use App\Models\Brand;
 use App\Models\Customer;
+use App\Models\FinanceCompany;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Mobile;
@@ -24,9 +25,12 @@ class InvoiceController extends Controller
 
     public function index()
     {
+        $financeCompanies = FinanceCompany::active()->orderBy('name')->get();
+
         return view('invoice.index', [
             'header_title' => 'Invoices',
             'tagline' => 'View and manage sales invoices and customer payments.',
+            'financeCompanies' => $financeCompanies,
         ]);
     }
 
@@ -48,7 +52,7 @@ class InvoiceController extends Controller
         $order = isset($columns[$orderColumnIndex]) ? $columns[$orderColumnIndex] : 'invoice_no';
         $dir = $request->input('order.0.dir') ?? 'desc';
 
-        $query = Invoice::with('customer');
+        $query = Invoice::with(['customer', 'financeCompany']);
 
         $totalData = $query->count();
 
@@ -61,7 +65,19 @@ class InvoiceController extends Controller
         }
 
         if ($request->filled('payment_method')) {
-            $query->where('payment_method', $request->input('payment_method'));
+            $pm = $request->input('payment_method');
+            if (str_starts_with($pm, 'fc_')) {
+                $fcId = (int) str_replace('fc_', '', $pm);
+                $query->where('finance_company_id', $fcId);
+            } elseif ($pm === 'finance') {
+                $query->where(function ($q) {
+                    $q->where('payment_method', 'finance')
+                      ->orWhere('payment_method', 'bajaj_finance')
+                      ->orWhereNotNull('finance_company_id');
+                });
+            } else {
+                $query->where('payment_method', $pm);
+            }
         }
 
         if (! empty($request->input('search.value'))) {
@@ -96,9 +112,10 @@ class InvoiceController extends Controller
             $nested['subtotal'] = $invoice->subtotal;
             $nested['tax_amount'] = $invoice->tax_amount;
             $nested['paid_amount'] = $invoice->paid_amount;
-            $payment_method = $invoice->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst($invoice->payment_method);
-            if ($invoice->bajaj_approval_number) {
-                $payment_method .= ' <br><span class="badge bg-soft-primary border border-primary text-primary fs-10">'.$invoice->bajaj_approval_number.'</span>';
+            $payment_method = $invoice->financeCompany ? $invoice->financeCompany->name : ($invoice->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst(str_replace('_', ' ', $invoice->payment_method)));
+            $approvalNo = $invoice->approval_number ?: $invoice->bajaj_approval_number;
+            if ($approvalNo) {
+                $payment_method .= ' <br><span class="badge bg-soft-primary border border-primary text-primary fs-10">'.e($approvalNo).'</span>';
             }
             $nested['payment_method'] = $payment_method;
             $nested['edit_url'] = route('invoice.edit', $invoice->id);
@@ -173,8 +190,9 @@ class InvoiceController extends Controller
         $products = $products->merge($accessories);
 
         $brands = Brand::orderBy('name')->get();
+        $financeCompanies = FinanceCompany::active()->orderBy('name')->get();
 
-        return view('invoice.create', compact('products', 'brands'));
+        return view('invoice.create', compact('products', 'brands', 'financeCompanies'));
     }
 
     public function store(Request $request)
@@ -408,6 +426,23 @@ class InvoiceController extends Controller
                 }
             }
 
+            $payment_method = strtolower($request->payment_method ?: 'cash');
+            $isFinance = ($payment_method === 'finance' || $payment_method === 'bajaj_finance' || !empty($request->finance_company_id));
+
+            $finance_company_id = $isFinance ? ($request->finance_company_id ?: null) : null;
+            $approval_number = $isFinance ? ($request->approval_number ?: $request->bajaj_approval_number) : null;
+
+            if ($isFinance && ! $finance_company_id && $payment_method === 'bajaj_finance') {
+                $finance_company_id = FinanceCompany::where('code', 'bajaj_finance')->value('id') ?: 1;
+            }
+
+            if ($isFinance) {
+                $payment_method = 'finance';
+            } else {
+                $finance_company_id = null;
+                $approval_number = null;
+            }
+
             $invoice = Invoice::create([
                 'customer_id' => $customer->id,
                 'invoice_no' => $this->getInvoiceNumber(),
@@ -420,8 +455,10 @@ class InvoiceController extends Controller
                 'paid_amount' => $totalAmount,
                 'due_amount' => 0,
                 'payment_status' => 'paid',
-                'payment_method' => $payment_method = strtolower($request->payment_method ?: 'cash'),
-                'bajaj_approval_number' => $payment_method == 'bajaj_finance' ? $request->bajaj_approval_number : null,
+                'payment_method' => $payment_method,
+                'finance_company_id' => $finance_company_id,
+                'approval_number' => $approval_number,
+                'bajaj_approval_number' => $approval_number,
             ]);
 
             foreach ($itemsToCreate as $it) {
@@ -437,6 +474,8 @@ class InvoiceController extends Controller
                         'transaction_date' => $invoice->invoice_date,
                         'invoice_no' => $invoice->invoice_no,
                         'payment_method' => $invoice->payment_method,
+                        'finance_company_id' => $invoice->finance_company_id,
+                        'approval_number' => $invoice->approval_number,
                         'bajaj_approval_number' => $invoice->bajaj_approval_number,
                     ]);
 
@@ -465,6 +504,8 @@ class InvoiceController extends Controller
                         'transaction_date' => $invoice->invoice_date,
                         'invoice_no' => $invoice->invoice_no,
                         'payment_method' => $invoice->payment_method,
+                        'finance_company_id' => $invoice->finance_company_id,
+                        'approval_number' => $invoice->approval_number,
                         'bajaj_approval_number' => $invoice->bajaj_approval_number,
                     ]);
 
@@ -561,8 +602,9 @@ class InvoiceController extends Controller
         $products = $products->merge($accessories);
 
         $brands = Brand::orderBy('name')->get();
+        $financeCompanies = FinanceCompany::active()->orderBy('name')->get();
 
-        return view('invoice.edit', compact('invoice', 'products', 'brands'));
+        return view('invoice.edit', compact('invoice', 'products', 'brands', 'financeCompanies'));
     }
 
     public function update(Request $request, $id)
@@ -723,6 +765,23 @@ class InvoiceController extends Controller
                 throw new Exception('At least one valid item is required.');
             }
 
+            $payment_method = strtolower($request->payment_method ?: $invoice->payment_method);
+            $isFinance = ($payment_method === 'finance' || $payment_method === 'bajaj_finance' || !empty($request->finance_company_id));
+
+            $finance_company_id = $isFinance ? ($request->finance_company_id ?: null) : null;
+            $approval_number = $isFinance ? ($request->approval_number ?: $request->bajaj_approval_number) : null;
+
+            if ($isFinance && ! $finance_company_id && $payment_method === 'bajaj_finance') {
+                $finance_company_id = FinanceCompany::where('code', 'bajaj_finance')->value('id') ?: 1;
+            }
+
+            if ($isFinance) {
+                $payment_method = 'finance';
+            } else {
+                $finance_company_id = null;
+                $approval_number = null;
+            }
+
             // 5. Update Invoice Main Record
             $invoice->update([
                 'customer_id' => $customer->id,
@@ -734,8 +793,10 @@ class InvoiceController extends Controller
                 'paid_amount' => $totalAmount,
                 'due_amount' => 0,
                 'payment_status' => 'paid',
-                'payment_method' => $payment_method = strtolower($request->payment_method ?: $invoice->payment_method),
-                'bajaj_approval_number' => $payment_method == 'bajaj_finance' ? $request->bajaj_approval_number : null,
+                'payment_method' => $payment_method,
+                'finance_company_id' => $finance_company_id,
+                'approval_number' => $approval_number,
+                'bajaj_approval_number' => $approval_number,
             ]);
 
             // 6. Re-create new items and transactions
@@ -751,6 +812,8 @@ class InvoiceController extends Controller
                         'transaction_date' => $invoice->invoice_date,
                         'invoice_no' => $invoice->invoice_no,
                         'payment_method' => $invoice->payment_method,
+                        'finance_company_id' => $invoice->finance_company_id,
+                        'approval_number' => $invoice->approval_number,
                         'bajaj_approval_number' => $invoice->bajaj_approval_number,
                     ]);
 
@@ -776,6 +839,8 @@ class InvoiceController extends Controller
                         'transaction_date' => $invoice->invoice_date,
                         'invoice_no' => $invoice->invoice_no,
                         'payment_method' => $invoice->payment_method,
+                        'finance_company_id' => $invoice->finance_company_id,
+                        'approval_number' => $invoice->approval_number,
                         'bajaj_approval_number' => $invoice->bajaj_approval_number,
                     ]);
 

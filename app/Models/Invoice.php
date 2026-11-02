@@ -14,12 +14,33 @@ class Invoice extends Model
         'user_id', 'invoice_no', 'customer_id', 'invoice_type',
         'subtotal', 'discount', 'tax_amount', 'grand_total',
         'paid_amount', 'due_amount', 'payment_status',
-        'payment_method', 'bajaj_approval_number', 'invoice_date', 'notes'
+        'payment_method', 'finance_company_id', 'approval_number', 'bajaj_approval_number', 'invoice_date', 'notes'
     ];
 
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function financeCompany()
+    {
+        return $this->belongsTo(FinanceCompany::class, 'finance_company_id');
+    }
+
+    public function getDisplayPaymentMethodAttribute()
+    {
+        if ($this->financeCompany) {
+            return $this->financeCompany->name;
+        }
+        if ($this->payment_method === 'bajaj_finance') {
+            return 'Bajaj Finance';
+        }
+        return ucfirst(str_replace('_', ' ', $this->payment_method ?? 'cash'));
+    }
+
+    public function getDisplayApprovalNumberAttribute()
+    {
+        return $this->approval_number ?: $this->bajaj_approval_number;
     }
 
     public function items()

@@ -18,11 +18,34 @@ class Transaction extends Model
         'transaction_type',
         'price',
         'payment_method',
+        'finance_company_id',
+        'approval_number',
         'bajaj_approval_number',
         'transaction_date',
         'invoice_no',
         'notes'
     ];
+
+    public function financeCompany()
+    {
+        return $this->belongsTo(FinanceCompany::class, 'finance_company_id');
+    }
+
+    public function getDisplayPaymentMethodAttribute()
+    {
+        if ($this->financeCompany) {
+            return $this->financeCompany->name;
+        }
+        if ($this->payment_method === 'bajaj_finance') {
+            return 'Bajaj Finance';
+        }
+        return ucfirst(str_replace('_', ' ', $this->payment_method ?? 'cash'));
+    }
+
+    public function getDisplayApprovalNumberAttribute()
+    {
+        return $this->approval_number ?: $this->bajaj_approval_number;
+    }
 
     public function mobile()
     {

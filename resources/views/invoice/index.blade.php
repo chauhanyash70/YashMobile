@@ -33,7 +33,14 @@
                                     <option value="card">Card</option>
                                     <option value="bank_transfer">Bank Transfer</option>
                                     <option value="credit">Credit</option>
-                                    <option value="bajaj_finance">Bajaj Finance</option>
+                                    <option value="finance">All Finance</option>
+                                    @if(isset($financeCompanies) && $financeCompanies->count() > 0)
+                                        @foreach($financeCompanies as $fc)
+                                            <option value="fc_{{ $fc->id }}">{{ $fc->name }}</option>
+                                        @endforeach
+                                    @else
+                                        <option value="fc_1">Bajaj Finance</option>
+                                    @endif
                                 </select>
                             </div>
                             <div class="col-md-3 col-sm-6 d-flex gap-2">

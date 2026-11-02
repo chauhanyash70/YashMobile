@@ -40,7 +40,7 @@ class TransactionController extends Controller
         $order = $columns[$request->input('order.0.column') ?? 0];
         $dir = $request->input('order.0.dir') ?? 'desc';
 
-        $query = Transaction::with(['customer', 'mobile.brand', 'mobile.model', 'accessory.brand', 'invoiceItem']);
+        $query = Transaction::with(['customer', 'mobile.brand', 'mobile.model', 'accessory.brand', 'invoiceItem', 'financeCompany']);
 
         $totalData = $query->count();
         $totalFiltered = $totalData;
@@ -93,7 +93,12 @@ class TransactionController extends Controller
             
             $nested['price'] = $transaction->price;
             $nested['discount'] = $transaction->invoiceItem->discount ?? 0;
-            $nested['payment_method'] = $transaction->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst($transaction->payment_method);
+            $displayPaymentMethod = $transaction->financeCompany ? $transaction->financeCompany->name : ($transaction->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst(str_replace('_', ' ', $transaction->payment_method)));
+            $approvalNo = $transaction->approval_number ?: $transaction->bajaj_approval_number;
+            if ($approvalNo) {
+                $displayPaymentMethod .= ' <br><span class="badge bg-soft-primary border border-primary text-primary fs-10">'.e($approvalNo).'</span>';
+            }
+            $nested['payment_method'] = $displayPaymentMethod;
             $nested['invoice_no'] = $transaction->invoice_no ?: 'N/A';
             $nested['show_url'] = route('transactions.show', $transaction->id);
             $nested['actions'] = $transaction->id;

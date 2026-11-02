@@ -119,13 +119,14 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="text-muted fw-medium">Payment:</span>
                                         <span
-                                            class="badge bg-white text-dark border shadow-sm px-2">{{ $transaction->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst($transaction->payment_method) }}</span>
+                                            class="badge bg-white text-dark border shadow-sm px-2">{{ $transaction->financeCompany ? $transaction->financeCompany->name : ($transaction->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst(str_replace('_', ' ', $transaction->payment_method))) }}</span>
                                     </div>
-                                    @if ($transaction->bajaj_approval_number)
+                                    @php $appr = $transaction->approval_number ?: $transaction->bajaj_approval_number; @endphp
+                                    @if ($appr)
                                         <div class="d-flex justify-content-between align-items-center mt-2">
                                             <span class="text-muted fw-medium small">Appr No:</span>
                                             <span
-                                                class="text-dark small fw-semibold">{{ $transaction->bajaj_approval_number }}</span>
+                                                class="text-dark small fw-semibold">{{ $appr }}</span>
                                         </div>
                                     @endif
                                 </div>

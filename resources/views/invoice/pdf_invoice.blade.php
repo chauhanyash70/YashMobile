@@ -176,9 +176,10 @@
                 <td><strong>Invoice No:</strong> <br>#{{ $invoice->invoice_no }}</td>
                 <td><strong>Date:</strong> <br>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d-m-Y') }} <br>
                     <strong>Payment Method:</strong>
-                    <br>{{ $invoice->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst($invoice->payment_method ?? '') }}
-                    @if ($invoice->bajaj_approval_number)
-                        <br><strong>Bajaj Appr No:</strong> {{ $invoice->bajaj_approval_number }}
+                    <br>{{ $invoice->financeCompany ? $invoice->financeCompany->name : ($invoice->payment_method == 'bajaj_finance' ? 'Bajaj Finance' : ucfirst(str_replace('_', ' ', $invoice->payment_method ?? ''))) }}
+                    @php $appr = $invoice->approval_number ?: $invoice->bajaj_approval_number; @endphp
+                    @if ($appr)
+                        <br><strong>Appr / Loan No:</strong> {{ $appr }}
                     @endif
                 </td>
             </tr>

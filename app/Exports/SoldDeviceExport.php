@@ -73,7 +73,7 @@ class SoldDeviceExport implements FromCollection, WithHeadings, WithMapping, Sho
             $invoice->invoice_date ? Carbon::parse($invoice->invoice_date)->format('Y-m-d') : 'N/A',
             $buyTransaction && $buyTransaction->customer ? $buyTransaction->customer->name.'('.$buyTransaction->customer->phone.')' : 'N/A',
             $invoice->customer ? $invoice->customer->name.'('.$invoice->customer->phone.')' : 'Cash Customer',
-            Str::title(Str::replace('_', ' ', $invoice->payment_method)) ?? 'N/A'
+            $invoice->financeCompany ? $invoice->financeCompany->name : (Str::title(Str::replace('_', ' ', $invoice->payment_method)) ?? 'N/A')
         ];
     }
 

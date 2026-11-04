@@ -41,6 +41,17 @@
             width: 100% !important;
             display: block !important;
         }
+        .qty-icons input.quantity-input {
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
+            -moz-appearance: textfield;
+            font-weight: 600;
+        }
+        .qty-icons input.quantity-input::-webkit-outer-spin-button,
+        .qty-icons input.quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
     </style>
 @endsection
 @section('content')
@@ -149,11 +160,11 @@
                                                             </div>
                                                         </div>
                                                     </th>
-                                                    <th style="width: 170px;">Quantity <span class="text-danger">*</span>
+                                                    <th style="width: 170px; min-width: 150px;">Quantity <span class="text-danger">*</span>
                                                     </th>
-                                                    <th style="width: 150px;">Price (₹) <span class="text-danger">*</span>
+                                                    <th style="width: 220px; min-width: 200px;">Price (₹) <span class="text-danger">*</span>
                                                     </th>
-                                                    <th style="width: 140px;">Subtotal</th>
+                                                    <th style="width: 150px; min-width: 140px;">Subtotal</th>
                                                 </tr>
                                             </thead>
                                             <tbody data-repeater-list="invoice_items">
@@ -356,7 +367,7 @@
                                                         </td>
 
                                                         <!-- Quantity input structure inside table row -->
-                                                        <td>
+                                                        <td style="width: 170px; min-width: 150px;">
                                                             <div class="input-group qty-icons">
                                                                 <button type="button" class="btn decrement">-</button>
                                                                 <input type="number"
@@ -372,7 +383,7 @@
                                                         </td>
 
                                                         <!-- Price field inside table row -->
-                                                        <td>
+                                                        <td style="width: 220px; min-width: 200px;">
                                                             <div class="input-group">
                                                                 <span class="input-group-text bg-light">₹</span>
                                                                 <input name="price" type="number"
@@ -387,7 +398,7 @@
                                                         </td>
 
                                                         <!-- Item Subtotal display -->
-                                                        <td>
+                                                        <td style="width: 150px; min-width: 140px;">
                                                             <div class="d-flex justify-content-between align-items-center">
                                                                 <span class="fw-semibold">
                                                                     ₹ <span
@@ -420,7 +431,7 @@
                                                                 </select>
                                                             </div>
                                                         </td>
-                                                        <td>
+                                                        <td style="width: 170px; min-width: 150px;">
                                                             <div class="input-group qty-icons">
                                                                 <button type="button" class="btn decrement">-</button>
                                                                 <input type="number"
@@ -430,7 +441,7 @@
                                                                 <button type="button" class="btn increment">+</button>
                                                             </div>
                                                         </td>
-                                                        <td>
+                                                        <td style="width: 220px; min-width: 200px;">
                                                             <div class="input-group">
                                                                 <span class="input-group-text bg-light">₹</span>
                                                                 <input name="price" type="number"
@@ -438,7 +449,7 @@
                                                                     min="1" step="0.01">
                                                             </div>
                                                         </td>
-                                                        <td>
+                                                        <td style="width: 150px; min-width: 140px;">
                                                             <div class="d-flex justify-content-between align-items-center">
                                                                 <span class="fw-semibold">₹ <span
                                                                         class="item_sub_total">0.00</span></span>
